@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("STUDENT") // "STUDENT", "TEACHER", "SCHOOL_ADMIN"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile           Profile?
+  assessments       Assessment[]
+  humanCapitalScore HumanCapitalScore?
+  submissions       Submission[]
+  portfolios        Portfolio[]
+  verificationsDone Verification[]     @relation("TeacherVerifications")
+}
+
+model Profile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolName String?
+  province   String?
+  city       String?
+  interests  String   // Stored as JSON string
+  talents    String   // Stored as JSON string
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Assessment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers   String   // Stored as JSON string
+  score     Float 
+  createdAt DateTime @default(now())
+}
+
+model HumanCapitalScore {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadership     Float    @default(0)
+  creativity     Float    @default(0)
+  collaboration  Float    @default(0)
+  communication  Float    @default(0)
+  problemSolving Float    @default(0)
+  totalScore     Float    @default(0)
+  updatedAt      DateTime @updatedAt
+}
+
+model Challenge {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  category    String 
+  location    String
+  duration    Int 
+  points      Int 
+  target      String 
+  
+  submissions Submission[]
+  createdAt   DateTime     @default(now())
+}
+
+model Submission {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId String
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  status      String    @default("IN_PROGRESS") // "IN_PROGRESS", "SUBMITTED", "REVISION_REQUESTED", "COMPLETED"
+  proofUrl    String? 
+  report      String? 
+  
+  verification Verification?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Verification {
+  id           String     @id @default(uuid())
+  submissionId String     @unique
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  teacherId    String
+  teacher      User       @relation("TeacherVerifications", fields: [teacherId], references: [id])
+  feedback     String? 
+  isApproved   Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+}
+
+model Portfolio {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  impactScore Int
+  blockchainTx String? 
+  createdAt   DateTime @default(now())
+}

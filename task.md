@@ -1,0 +1,17 @@
+- [x] Setup Lingkungan Backend
+  - [x] Inisialisasi Prisma ORM
+  - [ ] Persiapkan file `.env` dengan kredensial Supabase dan Gemini
+- [x] Migrasi Database
+  - [x] Desain skema Prisma (Users, Profiles, Challenges, dll)
+  - [x] Jalankan migrasi ke Supabase
+  - [ ] Buat *seed data* awal (opsional)
+- [x] Fitur Backend (API Routes)
+  - [x] Endpoint `/api/challenges` (Rekomendasi berdasarkan profil)
+  - [x] Endpoint `/api/challenges/[id]` (Detail panduan challenge)
+  - [x] Endpoint `/api/mentor` (Integrasi Gemini AI)
+  - [x] Endpoint `/api/portfolios` (Portofolio dan sertifikat)
+- [ ] Integrasi Sederhana ke Frontend
+  - [ ] Edit `AiMentorTab.tsx` agar memanggil API `/api/mentor` (Gemini)
+  - [ ] Edit `challenges/page.tsx` agar memanggil `/api/challenges/recommendations`
+  - [ ] Edit `challenges/[id]/page.tsx` agar mengambil detail asli
+  - [ ] Edit `portofolio/page.tsx` agar menggunakan `/api/portfolios`

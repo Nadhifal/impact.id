@@ -31,7 +31,6 @@ export function AiMentorTab() {
     setMessages((prev) => [...prev, newMsg]);
     setInputText("");
     setIsTyping(true);
-
     try {
       // SKELETON INTEGRASI FASTAPI (Hapus komentar jika backend FastAPI sudah aktif)
       /*
