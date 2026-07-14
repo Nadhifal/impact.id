@@ -5,11 +5,19 @@
   --foreground: #171717;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Auth / Global Colors */
+  --color-primary: #00473e;
+  --color-primary-hover: #00362f;
+  --color-accent: #8ce1d5;
+  --color-surface-light: #e6f4f1;
+  --color-surface-input: #f8fafb;
+  --color-surface-card: #eef7f6;
 }
 
 @media (prefers-color-scheme: dark) {
