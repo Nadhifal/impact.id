@@ -1,30 +1,93 @@
-"use client";
-
 import React from "react";
 import {
   bioProfile,
-  verifiedCredential,
   summaryStats,
   coreSkills,
   portfolioProjects,
-  aiRecommendations
+  aiRecommendations,
+  verifiedCredentials,
 } from "./data";
+import { prisma } from "@/lib/prisma";
 import { BioSection } from "./components/section/BioSection";
 import { SidebarSection } from "./components/section/SidebarSection";
 import { KaryaSection } from "./components/section/KaryaSection";
+import { DEMO_USER_ID } from "@/lib/api";
 
-export default function SiswaPortfolioPage() {
+export const dynamic = "force-dynamic";
+
+// Server Component — query Prisma directly
+export default async function SiswaPortfolioPage() {
+  let liveCredentials: typeof verifiedCredentials = [];
+  let liveBio = bioProfile;
+  let liveStats = summaryStats;
+
+  try {
+    const user = await prisma.user.findFirst({
+      include: {
+        profile: true,
+        humanCapitalScore: true,
+        submissions: {
+          where: { status: "COMPLETED" },
+          include: { challenge: true, verification: true },
+          orderBy: { updatedAt: "desc" },
+        },
+      },
+    });
+
+    if (user) {
+      // Override bio with real DB data
+      liveBio = {
+        ...bioProfile,
+        name: user.name ?? bioProfile.name,
+        institution:
+          user.profile?.schoolName ??
+          user.profile?.city ??
+          bioProfile.institution,
+      };
+
+      // Override stats from human capital score
+      const hcs = user.humanCapitalScore;
+      if (hcs) {
+        liveStats = [
+          { label: "Leadership", value: String(Math.round(hcs.leadership)), iconName: "impact" },
+          { label: "Kreativitas", value: String(Math.round(hcs.creativity)), iconName: "projects" },
+          { label: "Kolaborasi", value: String(Math.round(hcs.collaboration)), iconName: "hours" },
+          { label: "Problem Solving", value: String(Math.round(hcs.problemSolving)), iconName: "partners" },
+        ];
+      }
+
+      // Build credentials from completed+verified submissions
+      if (user.submissions.length > 0) {
+        liveCredentials = user.submissions.map((sub) => ({
+          type: "VERIFIED CREDENTIAL",
+          title: sub.challenge.title,
+          issuer: "IMPACT.ID",
+          issuedDate: `Diterbitkan: ${new Date(sub.updatedAt).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}`,
+        }));
+      }
+    }
+  } catch {
+    // DB unavailable — use dummy data below
+  }
+
+  // Use live credentials if available, fallback to dummy
+  const credentials = liveCredentials.length > 0 ? liveCredentials : verifiedCredentials;
+
   return (
     <div className="py-10 px-6 md:px-12 max-w-7xl mx-auto space-y-8">
       {/* Top Bio Profile Card Section */}
-      <BioSection bio={bioProfile} />
+      <BioSection bio={liveBio} />
 
       {/* Main Grid: Left Column Stats & Right Column Projects */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column Sidebar */}
         <SidebarSection
-          credential={verifiedCredential}
-          stats={summaryStats}
+          credential={credentials[0]}
+          stats={liveStats}
           skills={coreSkills}
         />
 
@@ -32,6 +95,7 @@ export default function SiswaPortfolioPage() {
         <KaryaSection
           projects={portfolioProjects}
           recommendations={aiRecommendations}
+          credentials={credentials}
         />
       </div>
     </div>

@@ -44,11 +44,33 @@ export const bioProfile: BioProfile = {
   avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80",
 };
 
-export const verifiedCredential: Credential = {
-  type: "VERIFIED CREDENTIAL",
-  title: "Impact Leadership Program",
-  issuedDate: "Diterbitkan: 12 Jan 2024",
-};
+export interface Credential {
+  type: string;
+  title: string;
+  issuedDate: string;
+  issuer: string;
+}
+
+export const verifiedCredentials: Credential[] = [
+  {
+    type: "VERIFIED CREDENTIAL",
+    title: "Impact Leadership Program",
+    issuer: "Kemendikbudristek",
+    issuedDate: "Diterbitkan: 12 Jan 2024",
+  },
+  {
+    type: "VERIFIED CREDENTIAL",
+    title: "Circular Economy Specialist",
+    issuer: "ITB & Waste4Change",
+    issuedDate: "Diterbitkan: 05 Nov 2023",
+  },
+  {
+    type: "VERIFIED CREDENTIAL",
+    title: "Social Innovation Challenge Winner",
+    issuer: "IMPACT.ID",
+    issuedDate: "Diterbitkan: 22 Agt 2023",
+  },
+];
 
 export const summaryStats: SummaryStat[] = [
   { label: "Skor Dampak", value: "2,450", iconName: "impact" },

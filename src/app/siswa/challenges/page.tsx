@@ -1,68 +1,86 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
+import { prisma } from "@/lib/prisma";
+import { SiswaChallengesClient } from "./SiswaChallengesClient";
 import {
-  featuredChallenge,
-  smartRecommendation,
-  availableChallenges,
-  specialChallenge
+  featuredChallenge as dummyFeatured,
+  availableChallenges as dummyAvailable,
+  smartRecommendation as dummyRec,
+  specialChallenge as dummySpecial,
 } from "./data";
-import { FeaturedSection } from "./components/section/FeaturedSection";
-import { AvailableSection } from "./components/section/AvailableSection";
 
-export default function SiswaChallengesPage() {
-  const [activeTab, setActiveTab] = useState("Semua");
-  const tabs = ["Semua", "Teknologi", "Pendidikan"];
+// Always render at request time — queries DB directly (no HTTP round-trip)
+export const dynamic = "force-dynamic";
 
-  const getFilteredChallenges = () => {
-    if (activeTab === "Semua") return availableChallenges;
-    return availableChallenges.filter(
-      (c) => c.category.toLowerCase() === activeTab.toLowerCase()
-    );
-  };
+// Default fallback images by category
+const CATEGORY_IMAGES: Record<string, string> = {
+  Kewirausahaan:
+    "https://images.unsplash.com/photo-1596422846543-75c6fc18a523?auto=format&fit=crop&w=300&h=180&q=80",
+  Lingkungan:
+    "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=300&h=180&q=80",
+  Sosial:
+    "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=300&h=180&q=80",
+  Edukasi:
+    "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=300&h=180&q=80",
+  Teknologi:
+    "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=300&h=180&q=80",
+  Kesehatan:
+    "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=300&h=180&q=80",
+  Pendidikan:
+    "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=300&h=180&q=80",
+};
 
-  return (
-    <div className="py-10 px-6 md:px-12 max-w-7xl mx-auto space-y-8">
-      {/* Header and Filter Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-100 pb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Ongoing Challenges
-          </h1>
-          <p className="text-zinc-500 text-sm">
-            Scale your impact by solving real-world problems.
-          </p>
-        </div>
+// Server Component — directly queries Prisma (no HTTP layer, always fresh)
+export default async function SiswaChallengesPage() {
+  let dbChallenges: Awaited<ReturnType<typeof prisma.challenge.findMany>> = [];
 
-        {/* Tab Filters */}
-        <div className="flex gap-2 p-1.5 bg-zinc-100 rounded-2xl w-fit">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === tab
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-zinc-500 hover:text-slate-800"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
+  try {
+    dbChallenges = await prisma.challenge.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { submissions: true } } },
+    });
+  } catch {
+    // DB not available — will use dummy data below
+  }
 
-      {/* Grid: Featured Challenge and Smart Recommendation Section */}
-      <FeaturedSection
+  // If DB has challenges, use them; otherwise fall back to dummy data
+  if (dbChallenges.length > 0) {
+    const displayChallenges = dbChallenges.map((c) => ({
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      category: c.category,
+      subCategory: c.target ?? "Umum",
+      points: c.points,
+      imageUrl:
+        CATEGORY_IMAGES[c.category] ??
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=300&h=180&q=80",
+      participantsCount: (c as { _count?: { submissions: number } })._count?.submissions ?? 0,
+    }));
+
+    const featuredChallenge = displayChallenges[0];
+    const availableChallenges = displayChallenges.slice(1);
+    const specialChallenge =
+      displayChallenges.length > 1
+        ? [...displayChallenges].sort((a, b) => b.points - a.points)[0]
+        : displayChallenges[0];
+
+    return (
+      <SiswaChallengesClient
         featuredChallenge={featuredChallenge}
-        smartRecommendation={smartRecommendation}
-      />
-
-      {/* Section: Available Challenges */}
-      <AvailableSection
-        challenges={getFilteredChallenges()}
+        availableChallenges={availableChallenges}
+        smartRecommendation={dummyRec}
         specialChallenge={specialChallenge}
       />
-    </div>
+    );
+  }
+
+  // Fallback: DB is empty or unavailable — render dummy data
+  return (
+    <SiswaChallengesClient
+      featuredChallenge={dummyFeatured}
+      availableChallenges={dummyAvailable}
+      smartRecommendation={dummyRec}
+      specialChallenge={dummySpecial}
+    />
   );
 }

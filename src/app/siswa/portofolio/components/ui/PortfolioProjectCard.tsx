@@ -57,7 +57,7 @@ export function PortfolioProjectCard({ project }: PortfolioProjectCardProps) {
             </span>
           ))}
         </div>
-        <button className="w-full py-2.5 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-slate-800 text-xs font-bold rounded-xl transition-all cursor-pointer text-center">
+        <button className="w-full py-2.5 bg-[#00473e] hover:bg-[#003830] text-white text-xs font-bold rounded-xl transition-all cursor-pointer text-center border-none">
           Pelajari Selengkapnya
         </button>
       </div>

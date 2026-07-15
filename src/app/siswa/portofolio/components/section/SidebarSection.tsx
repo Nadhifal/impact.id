@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Award, Zap, CheckCircle2, Clock, Building, ExternalLink } from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 
@@ -59,10 +60,13 @@ export function SidebarSection({ credential, stats, skills }: SidebarSectionProp
             <p className="text-[10px] text-slate-300 font-semibold">{credential.issuedDate}</p>
           </div>
         </div>
-        <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-white/10">
+        <Link 
+          href="/siswa/portofolio/detail-sertifikat"
+          className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-white/10"
+        >
           Lihat Sertifikat
           <ExternalLink className="w-3.5 h-3.5" />
-        </button>
+        </Link>
       </Card>
 
       {/* Grid of 4 Stats */}
