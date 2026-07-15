@@ -6,6 +6,7 @@ import { Award, Zap, CheckCircle2, Clock, Building, ExternalLink } from "lucide-
 import { Card } from "@/app/shared/components/ui/card";
 
 interface Credential {
+  id?: string;
   type: string;
   title: string;
   issuedDate: string;
@@ -23,7 +24,7 @@ interface CoreSkill {
 }
 
 interface SidebarSectionProps {
-  credential: Credential;
+  credential: Credential | null;
   stats: SummaryStat[];
   skills: CoreSkill[];
 }
@@ -47,27 +48,33 @@ export function SidebarSection({ credential, stats, skills }: SidebarSectionProp
   return (
     <div className="lg:col-span-4 space-y-6">
       {/* Certificate / Verified Credential Card */}
-      <Card className="bg-[#00473e] text-white p-6 rounded-2xl border-none shadow-md space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-accent shrink-0">
-            <Award className="w-5 h-5 fill-current" />
+      {credential ? (
+        <Card className="bg-[#00473e] text-white p-6 rounded-2xl border-none shadow-md space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-accent shrink-0">
+              <Award className="w-5 h-5 fill-current" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-extrabold text-accent uppercase tracking-widest block">
+                {credential.type}
+              </span>
+              <h4 className="text-sm font-bold tracking-wide">{credential.title}</h4>
+              <p className="text-[10px] text-slate-300 font-semibold">{credential.issuedDate}</p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <span className="text-[10px] font-extrabold text-accent uppercase tracking-widest block">
-              {credential.type}
-            </span>
-            <h4 className="text-sm font-bold tracking-wide">{credential.title}</h4>
-            <p className="text-[10px] text-slate-300 font-semibold">{credential.issuedDate}</p>
-          </div>
-        </div>
-        <Link 
-          href="/siswa/portofolio/detail-sertifikat"
-          className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-white/10"
-        >
-          Lihat Sertifikat
-          <ExternalLink className="w-3.5 h-3.5" />
-        </Link>
-      </Card>
+          <Link 
+            href={credential.id ? `/siswa/portofolio/detail-sertifikat?id=${credential.id}` : "/siswa/portofolio/detail-sertifikat"}
+            className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-white/10"
+          >
+            Lihat Sertifikat
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </Card>
+      ) : (
+        <Card className="bg-white border border-dashed border-zinc-200 text-zinc-400 p-6 rounded-2xl text-center text-xs font-bold shadow-xs">
+          Belum ada sertifikat terverifikasi
+        </Card>
+      )}
 
       {/* Grid of 4 Stats */}
       <div className="grid grid-cols-2 gap-4">

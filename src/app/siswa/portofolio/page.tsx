@@ -22,7 +22,8 @@ export default async function SiswaPortfolioPage() {
   let liveStats = summaryStats;
 
   try {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
+      where: { id: "demo-student-1" },
       include: {
         profile: true,
         humanCapitalScore: true,
@@ -33,6 +34,13 @@ export default async function SiswaPortfolioPage() {
         },
       },
     });
+
+    console.log("=== Portfolio page.tsx debug ===");
+    console.log("User found:", !!user);
+    if (user) {
+      console.log("Completed submissions count:", user.submissions.length);
+      console.log("Submissions data:", JSON.stringify(user.submissions, null, 2));
+    }
 
     if (user) {
       // Override bio with real DB data
@@ -59,6 +67,7 @@ export default async function SiswaPortfolioPage() {
       // Build credentials from completed+verified submissions
       if (user.submissions.length > 0) {
         liveCredentials = user.submissions.map((sub) => ({
+          id: sub.id,
           type: "VERIFIED CREDENTIAL",
           title: sub.challenge.title,
           issuer: "IMPACT.ID",
@@ -70,12 +79,12 @@ export default async function SiswaPortfolioPage() {
         }));
       }
     }
-  } catch {
-    // DB unavailable — use dummy data below
+  } catch (err) {
+    console.error("Gagal mengambil data portofolio dari DB:", err);
   }
 
-  // Use live credentials if available, fallback to dummy
-  const credentials = liveCredentials.length > 0 ? liveCredentials : verifiedCredentials;
+  // Only display real database-verified credentials, do not fall back to dummy
+  const credentials = liveCredentials;
 
   return (
     <div className="py-10 px-6 md:px-12 max-w-7xl mx-auto space-y-8">

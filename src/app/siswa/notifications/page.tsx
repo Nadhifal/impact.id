@@ -8,8 +8,27 @@ import { dummyNotifications, NotificationItem } from "./data";
 import { Button } from "@/app/shared/components/ui/button";
 
 export default function StudentNotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(dummyNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("/api/users/demo-student-1/notifications");
+      const json = await res.json();
+      if (json.success) {
+        setNotifications(json.data);
+      }
+    } catch (err) {
+      console.error("Gagal memuat notifikasi:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const handleMarkAsRead = (id: string) => {
     setNotifications((prev) =>
@@ -53,7 +72,11 @@ export default function StudentNotificationsPage() {
 
       {/* Notifications List */}
       <div className="space-y-4">
-        {filteredNotifications.length > 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-xl border border-slate-100 p-12 text-center">
+            <p className="text-slate-400 font-semibold text-sm">Loading notifications...</p>
+          </div>
+        ) : filteredNotifications.length > 0 ? (
           filteredNotifications.map((notif) => (
             <NotificationCard
               key={notif.id}

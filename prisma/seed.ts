@@ -1,11 +1,21 @@
 import { prisma } from '../src/lib/prisma';
 
 async function main() {
+  console.log('Cleaning database...');
+  await prisma.verification.deleteMany({});
+  await prisma.submission.deleteMany({});
+  await prisma.portfolio.deleteMany({});
+  await prisma.humanCapitalScore.deleteMany({});
+  await prisma.profile.deleteMany({});
+  await prisma.challenge.deleteMany({});
+  await prisma.user.deleteMany({});
+
   console.log('Seeding database...');
 
   // 1. Buat beberapa Challenges (berdasarkan proposal LIDM wilayah Banten)
   const challenge1 = await prisma.challenge.create({
     data: {
+      id: '1',
       title: 'Peta Gizi Desa Pandeglang',
       description: 'Memetakan gizi balita, sanitasi, pola asuh, dan akses layanan kesehatan.',
       category: 'Kesehatan, Sosial',
@@ -18,6 +28,7 @@ async function main() {
 
   const challenge2 = await prisma.challenge.create({
     data: {
+      id: '2',
       title: 'Digitalisasi UMKM Perdesaan Lebak',
       description: 'Pendampingan katalog digital, QRIS, marketplace, dan pemasaran digital.',
       category: 'Tech, Ekonomi',
@@ -30,6 +41,7 @@ async function main() {
 
   const challenge3 = await prisma.challenge.create({
     data: {
+      id: '3',
       title: 'UMKM Naik Kelas Kota Serang',
       description: 'Pendampingan Google Business Profile dan media sosial bisnis.',
       category: 'Tech, Bisnis',
@@ -43,6 +55,7 @@ async function main() {
   // 2. Buat User dummy (Siswa)
   const user = await prisma.user.create({
     data: {
+      id: 'demo-student-1',
       email: 'siswa@example.com',
       password: 'hashed_password_dummy',
       name: 'Nadhif Alfasya',
@@ -69,8 +82,20 @@ async function main() {
     },
   });
 
+  // 3. Buat User dummy (Guru)
+  const teacher = await prisma.user.create({
+    data: {
+      id: 'demo-teacher-1',
+      email: 'guru@example.com',
+      password: 'hashed_password_dummy',
+      name: 'Budi Santoso',
+      role: 'TEACHER',
+    },
+  });
+
   console.log('Seeding selesai!');
   console.log('User ID untuk testing:', user.id);
+  console.log('Teacher ID untuk testing:', teacher.id);
   console.log('Challenge ID untuk testing:', challenge2.id);
 }
 

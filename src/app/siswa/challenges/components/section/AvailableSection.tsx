@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Clock, Zap, ChevronDown } from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 import { ChallengesCard } from "../ui/ChallengesCard";
@@ -81,10 +82,12 @@ export function AvailableSection({ challenges, specialChallenge }: AvailableSect
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <button className="bg-primary hover:bg-primary-hover text-white text-xs font-bold py-3 px-5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all">
-                Ambil Tantangan Ini
-                <Zap className="w-3.5 h-3.5 fill-current" />
-              </button>
+              <Link href={`/siswa/challenges/${specialChallenge.id}`}>
+                <button className="bg-primary hover:bg-primary-hover text-white text-xs font-bold py-3 px-5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all">
+                  Ambil Tantangan Ini
+                  <Zap className="w-3.5 h-3.5 fill-current" />
+                </button>
+              </Link>
               <span className="text-xs font-black text-slate-800 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 {specialChallenge.points} pts

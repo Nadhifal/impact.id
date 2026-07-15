@@ -2,17 +2,68 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Upload, HelpCircle, Check, Send, Sparkles, AlertCircle } from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 import { Button } from "@/app/shared/components/ui/button";
 
 export default function SubmitChallengePage() {
+  const params = useParams();
+  const challengeId = (params?.id as string) || "1";
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("");
   const [validatedUmkm, setValidatedUmkm] = useState(0);
   const [communityReach, setCommunityReach] = useState(0);
   const [duration, setDuration] = useState(0);
   const [reflection, setReflection] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isUploaded, setIsUploaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      setIsUploaded(true);
+    }
+  };
+
+  const handleSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isUploaded) {
+      alert("Harap upload bukti terlebih dahulu!");
+      return;
+    }
+    if (!reflection.trim()) {
+      alert("Harap isi tulisan refleksi Anda!");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "demo-student-1",
+          challengeId,
+          proofUrl: fileName || "Dokumen_Laporan_Selesai.pdf",
+          report: reflection,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Gagal mengumpulkan challenge ke database");
+      }
+
+      window.location.href = `/siswa/challenges/${challengeId}/success`;
+    } catch (err: any) {
+      console.error(err);
+      alert("Terjadi kesalahan: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleEnhance = () => {
     if (!reflection.trim()) {
@@ -51,14 +102,22 @@ export default function SubmitChallengePage() {
               Upload Bukti
             </h3>
 
-            <div
-              onClick={() => setIsUploaded(true)}
+             <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".pdf,.png,.jpg,.jpeg"
+             />
+
+             <div
+              onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all ${
                 isUploaded
                   ? "border-emerald-500 bg-emerald-50/20"
                   : "border-zinc-200 hover:border-zinc-300 bg-zinc-50/30"
               }`}
-            >
+             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                 isUploaded ? "bg-emerald-100 text-emerald-600" : "bg-zinc-100 text-zinc-400"
               }`}>
@@ -66,7 +125,7 @@ export default function SubmitChallengePage() {
               </div>
               <div className="text-center space-y-1">
                 <p className="text-xs font-bold text-slate-700">
-                  {isUploaded ? "Dokumen_Laporan_Selesai.pdf Berhasil Diupload!" : "Tap to upload or drag & drop project photos, documents, or screenshots."}
+                  {isUploaded ? `${fileName} Berhasil Diupload!` : "Tap to upload or drag & drop project photos, documents, or screenshots."}
                 </p>
                 {!isUploaded && (
                   <p className="text-[10px] text-zinc-400 font-bold">PDF, PNG, JPG up to 10MB</p>
@@ -228,12 +287,14 @@ export default function SubmitChallengePage() {
           </button>
         </Link>
 
-        <Link href={`/siswa/challenges/1/success`}>
-          <Button className="bg-[#00473e] hover:bg-[#00362f] text-white py-3.5 px-6 rounded-xl flex items-center gap-2 text-xs font-bold shadow-md cursor-pointer">
-            Submit Challenge
-            <Send className="w-4 h-4 mt-0.5" />
-          </Button>
-        </Link>
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-[#00473e] hover:bg-[#00362f] text-white py-3.5 px-6 rounded-xl flex items-center gap-2 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Challenge"}
+          <Send className="w-4 h-4 mt-0.5" />
+        </Button>
       </div>
     </div>
   );

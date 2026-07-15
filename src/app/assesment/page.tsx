@@ -22,7 +22,7 @@ export default function AssessmentPage() {
     setSelectedAnswers(updatedAnswers);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
@@ -44,6 +44,17 @@ export default function AssessmentPage() {
       const RL = Math.round((categoryScores.RL / (categoryCounts.RL * 4)) * 100);
 
       localStorage.setItem("hcs_scores", JSON.stringify({ SI, LD, IN, RL }));
+
+      try {
+        await fetch("/api/users/demo-student-1", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scores: { SI, LD, IN, RL } }),
+        });
+      } catch (err) {
+        console.error("Database sync failed for assessment scores:", err);
+      }
+
       window.location.href = "/siswa/dashboard";
     }
   };

@@ -9,12 +9,60 @@ import { StatsRow } from "./components/section/StatsRow";
 import { dummySubmissions, dummyStats, Submission } from "./data";
 
 export default function VerificationPage() {
-  const [submissions, setSubmissions] = useState<Submission[]>(dummySubmissions);
-  const [selectedId, setSelectedId] = useState<string>("1");
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [stats, setStats] = useState(dummyStats);
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const activeSubmission = submissions.find((sub) => sub.id === selectedId) || submissions[0];
+  const fetchSubmissions = async () => {
+    try {
+      const res = await fetch("/api/submissions");
+      const json = await res.json();
+      if (json.success) {
+        const mapped: Submission[] = json.data.map((dbSub: any) => {
+          let uiStatus: "baru" | "revisi" | "normal" = "baru";
+          if (dbSub.status === "REVISION_REQUESTED") uiStatus = "revisi";
+          if (dbSub.status === "COMPLETED") uiStatus = "normal";
+
+          return {
+            id: dbSub.id,
+            initials: dbSub.user?.name ? dbSub.user.name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() : "JD",
+            name: dbSub.user?.name || "Siswa",
+            projectTitle: dbSub.challenge?.title || "Challenge",
+            timeAgo: new Date(dbSub.updatedAt).toLocaleDateString("id-ID"),
+            status: uiStatus,
+            file: {
+              name: dbSub.proofUrl || "bukti.pdf",
+              size: "1.2 MB",
+            },
+            scores: {
+              leadership: dbSub.user?.humanCapitalScore?.leadership || 0,
+              komunikasi: dbSub.user?.humanCapitalScore?.communication || 0,
+              problemSolving: dbSub.user?.humanCapitalScore?.problemSolving || 0,
+              kreativitas: dbSub.user?.humanCapitalScore?.creativity || 0,
+              kolaborasi: dbSub.user?.humanCapitalScore?.collaboration || 0,
+            },
+            feedback: dbSub.verification?.feedback || "",
+          };
+        });
+        setSubmissions(mapped);
+        if (mapped.length > 0 && !selectedId) {
+          setSelectedId(mapped[0].id);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSubmissions();
+  }, []);
+
+  const activeSubmission = submissions.find((sub) => sub.id === selectedId);
 
   const showToast = (message: string, type: "success" | "info" = "success") => {
     setToast({ message, type });
@@ -27,33 +75,58 @@ export default function VerificationPage() {
 
   const handleUpdateScores = (newScores: Submission["scores"]) => {
     setSubmissions((prev) =>
-      prev.map((sub) => (sub.id === activeSubmission.id ? { ...sub, scores: newScores } : sub))
+      prev.map((sub) => (sub.id === activeSubmission?.id ? { ...sub, scores: newScores } : sub))
     );
   };
 
   const handleUpdateFeedback = (newFeedback: string) => {
     setSubmissions((prev) =>
-      prev.map((sub) => (sub.id === activeSubmission.id ? { ...sub, feedback: newFeedback } : sub))
+      prev.map((sub) => (sub.id === activeSubmission?.id ? { ...sub, feedback: newFeedback } : sub))
     );
   };
 
-  const handleApprove = () => {
-    showToast(`Submission "${activeSubmission.name}" berhasil disetujui!`, "success");
-    // Update status to normal and clear badge/update stats if needed
-    setSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === activeSubmission.id ? { ...sub, status: "normal" } : sub
-      )
-    );
+  const handleApprove = async () => {
+    if (!activeSubmission) return;
+    try {
+      const response = await fetch(`/api/submissions/${activeSubmission.id}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teacherId: "demo-teacher-1",
+          feedback: activeSubmission.feedback,
+          isApproved: true,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Gagal memverifikasi di database");
+
+      showToast(`Submission "${activeSubmission.name}" berhasil disetujui!`, "success");
+      fetchSubmissions();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
   };
 
-  const handleReject = () => {
-    showToast(`Revisi dikirimkan untuk "${activeSubmission.name}".`, "info");
-    setSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === activeSubmission.id ? { ...sub, status: "revisi" } : sub
-      )
-    );
+  const handleReject = async () => {
+    if (!activeSubmission) return;
+    try {
+      const response = await fetch(`/api/submissions/${activeSubmission.id}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teacherId: "demo-teacher-1",
+          feedback: activeSubmission.feedback,
+          isApproved: false,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Gagal mengirimkan revisi ke database");
+
+      showToast(`Revisi dikirimkan untuk "${activeSubmission.name}".`, "info");
+      fetchSubmissions();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -86,20 +159,26 @@ export default function VerificationPage() {
             <div className="xl:col-span-4">
               <SubmissionList
                 submissions={submissions}
-                selectedId={activeSubmission.id}
+                selectedId={selectedId}
                 onSelect={handleSelectSubmission}
               />
             </div>
 
             {/* Right Column: Assessment Detail */}
             <div className="xl:col-span-8">
-              <AssessmentPanel
-                submission={activeSubmission}
-                onUpdateScores={handleUpdateScores}
-                onUpdateFeedback={handleUpdateFeedback}
-                onApprove={handleApprove}
-                onReject={handleReject}
-              />
+              {activeSubmission ? (
+                <AssessmentPanel
+                  submission={activeSubmission}
+                  onUpdateScores={handleUpdateScores}
+                  onUpdateFeedback={handleUpdateFeedback}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                />
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center text-slate-450 font-semibold text-sm">
+                  {loading ? "Memuat data dari database..." : "Tidak ada submission dari database."}
+                </div>
+              )}
             </div>
           </div>
 

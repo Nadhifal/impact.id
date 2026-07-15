@@ -32,41 +32,38 @@ export function AiMentorTab() {
     setInputText("");
     setIsTyping(true);
     try {
-      // SKELETON INTEGRASI FASTAPI (Hapus komentar jika backend FastAPI sudah aktif)
-      /*
-      const response = await fetch("http://127.0.0.1:8000/api/chat", {
+      const response = await fetch("/api/mentor", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
+      
       const data = await response.json();
       setIsTyping(false);
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Gagal mendapatkan respons dari AI");
+      }
+
       const aiResponse: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: "ai",
-        text: data.reply || data.response || "Maaf, respon AI Mentor tidak dapat dimuat.",
+        text: data.reply || "Maaf, respon AI Mentor tidak dapat dimuat.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
+      
       setMessages((prev) => [...prev, aiResponse]);
-      return;
-      */
-
-      // FALLBACK DUMMY UNTUK PRESENTASI LOKAL/FRONTEND ONLY
-      setTimeout(() => {
-        setIsTyping(false);
-        const aiResponse: ChatMessage = {
-          id: `ai-${Date.now()}`,
-          sender: "ai",
-          text: `Pertanyaan bagus! Untuk topik "${text}", mentor AI merekomendasikan Anda berfokus pada studi kasus efisiensi operasional dan pengurangan emisi karbon. Apakah Anda ingin mempelajari lebih lanjut?`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-        setMessages((prev) => [...prev, aiResponse]);
-      }, 1200);
-    } catch (error) {
-      console.error("FastAPI connection error:", error);
+    } catch (error: any) {
+      console.error("AI Mentor error:", error);
       setIsTyping(false);
+      
+      const errorMsg: ChatMessage = {
+        id: `ai-err-${Date.now()}`,
+        sender: "ai",
+        text: "Maaf, terjadi kesalahan saat menghubungi AI Mentor: " + error.message,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages((prev) => [...prev, errorMsg]);
     }
   };
 

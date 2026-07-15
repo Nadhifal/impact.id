@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Sparkles, Compass, Zap, ArrowRight } from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 import { Button } from "@/app/shared/components/ui/button";
@@ -63,10 +64,12 @@ export function FeaturedSection({ featuredChallenge, smartRecommendation }: Feat
               </p>
             </div>
 
-            <Button className="bg-[#00473e] hover:bg-[#003830] text-white py-3 px-6 rounded-xl flex items-center gap-2 text-sm font-semibold cursor-pointer shadow-md border-none">
-              Lihat Detail Challenge
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            <Link href={`/siswa/challenges/${featuredChallenge.id}`}>
+              <Button className="bg-[#00473e] hover:bg-[#003830] text-white py-3 px-6 rounded-xl flex items-center gap-2 text-sm font-semibold cursor-pointer shadow-md border-none">
+                Lihat Detail Challenge
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </Card>

@@ -45,6 +45,7 @@ export const bioProfile: BioProfile = {
 };
 
 export interface Credential {
+  id?: string;
   type: string;
   title: string;
   issuedDate: string;

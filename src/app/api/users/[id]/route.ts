@@ -61,3 +61,55 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Gagal mengambil data user" }, { status: 500 });
   }
 }
+
+// PUT /api/users/[id]
+export async function PUT(request: Request, context: RouteContext) {
+  try {
+    const { id } = await context.params;
+    const body = await request.json();
+    const { scores } = body; // Expecting { SI, LD, IN, RL }
+
+    if (!scores) {
+      return NextResponse.json({ error: "Data skor tidak boleh kosong" }, { status: 400 });
+    }
+
+    const { SI, LD, IN, RL } = scores;
+
+    const leadership = Number(LD) || 0;
+    const creativity = Number(IN) || 0;
+    const problemSolving = Number(RL) || 0;
+    const collaboration = Number(SI) || 0;
+    const communication = Number(SI) || 0;
+    const totalScore = Math.round((leadership + creativity + problemSolving + collaboration + communication) / 5);
+
+    const hcs = await prisma.humanCapitalScore.upsert({
+      where: { userId: id },
+      update: {
+        leadership,
+        creativity,
+        problemSolving,
+        collaboration,
+        communication,
+        totalScore,
+      },
+      create: {
+        userId: id,
+        leadership,
+        creativity,
+        problemSolving,
+        collaboration,
+        communication,
+        totalScore,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: hcs,
+    });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("PUT /api/users/[id] error:", msg);
+    return NextResponse.json({ error: "Gagal menyimpan hasil asesmen", details: msg }, { status: 500 });
+  }
+}

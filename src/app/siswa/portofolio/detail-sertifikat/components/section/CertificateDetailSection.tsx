@@ -18,17 +18,20 @@ export function CertificateDetailSection({ detail, steps }: CertificateDetailSec
     if (!certRef.current) return;
 
     // Dynamically import to keep bundle size small (client-only)
-    const html2canvas = (await import("html2canvas")).default;
+    const { toPng } = await import("html-to-image");
     const { jsPDF } = await import("jspdf");
 
-    const canvas = await html2canvas(certRef.current, {
-      scale: 3,              // 3× resolution for crisp output
-      useCORS: true,
+    const imgData = await toPng(certRef.current, {
+      pixelRatio: 3,         // 3x resolution for crisp output
       backgroundColor: "#ffffff",
-      logging: false,
     });
 
-    const imgData = canvas.toDataURL("image/png");
+    // Load image to get original dimensions for correct PDF scaling
+    const img = new globalThis.Image();
+    img.src = imgData;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
 
     // A4 page in mm: 210 × 297
     const pdf = new jsPDF({
@@ -45,8 +48,8 @@ export function CertificateDetailSection({ detail, steps }: CertificateDetailSec
     const maxW = pageW - margin * 2;
     const maxH = pageH - margin * 2;
 
-    const imgW = canvas.width;
-    const imgH = canvas.height;
+    const imgW = img.width;
+    const imgH = img.height;
     const ratio = Math.min(maxW / (imgW / 3.7795), maxH / (imgH / 3.7795));
 
     const finalW = (imgW / 3.7795) * ratio;
