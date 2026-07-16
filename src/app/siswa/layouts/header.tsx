@@ -1,17 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Bell, Settings, LogOut } from "lucide-react";
+import { Menu, Bell, Settings } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { useUser } from "@/app/shared/context/AuthContext";
+import Image from "next/image";
 
 export function Header() {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const { user, logout } = useUser();
+  const [storedAvatar, setStoredAvatar] = useState<string | null>(null);
+  const { user } = useUser();
+
+  useEffect(() => {
+    // Try localStorage first for immediate display
+    const cached = localStorage.getItem("impact_avatar");
+    if (cached) setStoredAvatar(cached);
+
+    // Then sync from DB
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.avatarUrl) {
+          setStoredAvatar(data.avatarUrl);
+          localStorage.setItem("impact_avatar", data.avatarUrl);
+        }
+      })
+      .catch(() => {/* ignore */});
+  }, []);
 
   // Avatar initials fallback
   const initials = user?.name
@@ -61,38 +79,22 @@ export function Header() {
               <Settings className="w-5 h-5" />
             </Link>
 
-            {/* Avatar Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu((p) => !p)}
-                className="relative w-9 h-9 rounded-full overflow-hidden border border-zinc-200 hover:border-[#00473e] transition-all bg-[#e6f4f1] flex items-center justify-center text-xs font-bold text-[#00473e] cursor-pointer"
-                aria-label="User menu"
-              >
-                {initials}
-              </button>
-
-              {showUserMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowUserMenu(false)}
-                  />
-                  <div className="absolute right-0 top-11 z-50 w-52 bg-white border border-zinc-100 rounded-2xl shadow-lg py-2 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-zinc-50">
-                      <p className="text-sm font-bold text-slate-800 truncate">{user?.name ?? "—"}</p>
-                      <p className="text-xs text-slate-400 truncate">{user?.email ?? "—"}</p>
-                    </div>
-                    <button
-                      onClick={logout}
-                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Keluar
-                    </button>
-                  </div>
-                </>
+            {/* Avatar - langsung ke halaman profil */}
+            <Link
+              href="/siswa/profile"
+              className={`relative w-9 h-9 rounded-full overflow-hidden border transition-all bg-[#e6f4f1] flex items-center justify-center text-xs font-bold text-[#00473e] cursor-pointer ${
+                pathname === "/siswa/profile"
+                  ? "border-[#00473e] ring-2 ring-[#00473e]/20"
+                  : "border-zinc-200 hover:border-[#00473e]"
+              }`}
+              aria-label="Profil"
+            >
+              {storedAvatar ? (
+                <Image src={storedAvatar} alt="Avatar" fill className="object-cover" unoptimized />
+              ) : (
+                initials
               )}
-            </div>
+            </Link>
           </div>
         </div>
       </header>

@@ -15,7 +15,8 @@ model User {
   email     String   @unique
   password  String
   name      String
-  role      String   @default("STUDENT") // "STUDENT", "TEACHER", "SCHOOL_ADMIN"
+  role      String   @default("STUDENT") // "STUDENT", "TEACHER", "DINAS", "ADMIN"
+  avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
