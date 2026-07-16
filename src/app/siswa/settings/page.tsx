@@ -1,18 +1,70 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SettingsSidebar } from "./components/section/SettingsSidebar";
 import { AccountForm } from "./components/section/AccountForm";
-import { initialSettings, AccountSettingsData } from "./data";
+import { AccountSettingsData } from "./data";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export default function StudentSettingsPage() {
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState<string>("account");
-  const [settings, setSettings] = useState<AccountSettingsData>(initialSettings);
+  const [settings, setSettings] = useState<AccountSettingsData>({
+    fullName: "",
+    email: "",
+    bio: "",
+  });
   const [toast, setToast] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-  const handleSaveSettings = (updatedData: AccountSettingsData) => {
-    setSettings(updatedData);
-    setToast("Settings saved successfully!");
+  // Load settings from user profile API
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.name) {
+          setSettings({
+            fullName: data.name ?? "",
+            email: data.email ?? "",
+            bio: "",
+          });
+        } else if (user) {
+          setSettings({
+            fullName: user.name ?? "",
+            email: user.email ?? "",
+            bio: "",
+          });
+        }
+      })
+      .catch(() => {
+        if (user) {
+          setSettings({
+            fullName: user.name ?? "",
+            email: user.email ?? "",
+            bio: "",
+          });
+        }
+      })
+      .finally(() => setLoaded(true));
+  }, [user]);
+
+  const handleSaveSettings = async (updatedData: AccountSettingsData) => {
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: updatedData.fullName }),
+      });
+
+      if (res.ok) {
+        setSettings(updatedData);
+        setToast("Settings saved successfully!");
+      } else {
+        setToast("Failed to save settings.");
+      }
+    } catch {
+      setToast("Failed to save settings.");
+    }
     setTimeout(() => setToast(null), 3500);
   };
 
@@ -35,7 +87,13 @@ export default function StudentSettingsPage() {
         {/* Right Settings Content Form */}
         <div className="lg:col-span-9">
           {activeTab === "account" ? (
-            <AccountForm initialData={settings} onSave={handleSaveSettings} />
+            loaded ? (
+              <AccountForm initialData={settings} onSave={handleSaveSettings} />
+            ) : (
+              <div className="bg-white p-12 border border-slate-100 rounded-xl text-center shadow-xs">
+                <p className="text-xs text-slate-400 font-semibold">Loading...</p>
+              </div>
+            )
           ) : (
             <div className="bg-white p-12 border border-slate-100 rounded-xl text-center shadow-xs">
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">

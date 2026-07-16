@@ -15,13 +15,19 @@ function getIcon(type: GuruKPIItem["type"]) {
   }
 }
 
-export function DashboardKPIRow() {
+interface DashboardKPIRowProps {
+  kpiData?: GuruKPIItem[];
+}
+
+export function DashboardKPIRow({ kpiData: propData }: DashboardKPIRowProps) {
+  const data = propData ?? guruKPIData;
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border border-slate-100 rounded-2xl overflow-hidden bg-white">
-      {guruKPIData.map((kpi, idx) => (
+      {data.map((kpi, idx) => (
         <div
           key={idx}
-          className={`p-6 ${idx < guruKPIData.length - 1 ? "border-r border-slate-100" : ""} ${
+          className={`p-6 ${idx < data.length - 1 ? "border-r border-slate-100" : ""} ${
             kpi.type === "perhatian" ? "border-l-4 border-l-rose-500" : ""
           }`}
         >

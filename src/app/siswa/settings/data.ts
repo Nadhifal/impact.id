@@ -4,8 +4,9 @@ export interface AccountSettingsData {
   bio: string;
 }
 
+// This is now just a fallback. The actual settings page loads data from /api/profile.
 export const initialSettings: AccountSettingsData = {
-  fullName: "Alexander Mitchell",
-  email: "alex.mitchell@impact.id",
-  bio: "Impact investor focusing on sustainable education technology and social equity across Southeast Asia.",
+  fullName: "",
+  email: "",
+  bio: "",
 };

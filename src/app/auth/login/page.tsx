@@ -9,7 +9,7 @@ import { BenefitCard } from "../components/BenefitCard";
 import { Input } from "@/app/shared/components/ui/input";
 import { Button } from "@/app/shared/components/ui/button";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -49,6 +49,71 @@ export default function LoginPage() {
   };
 
   return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Error Message */}
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+          <p className="text-xs font-semibold text-red-600">{error}</p>
+        </div>
+      )}
+
+      {/* Email field */}
+      <Input
+        id="email"
+        name="email"
+        type="email"
+        label="Alamat Email"
+        icon={Mail}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="nama@email.com"
+        required
+      />
+
+      {/* Password field */}
+      <Input
+        id="password"
+        name="password"
+        type={showPassword ? "text" : "password"}
+        label="Password"
+        icon={Lock}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="••••••••"
+        required
+        headerAction={
+          <Link href="#" className="text-xs font-bold text-primary hover:underline">
+            Lupa password?
+          </Link>
+        }
+        rightIcon={
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-zinc-400 hover:text-zinc-600 transition-colors"
+            aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+          >
+            {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+          </button>
+        }
+      />
+
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="w-full mt-6 rounded-xl gap-1.5 py-3"
+      >
+        {isLoading ? "Masuk..." : "Sign In"}
+        {!isLoading && <ChevronRight className="w-4 h-4 mt-0.5" />}
+      </Button>
+    </form>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <AuthLayout>
       <div className="w-full max-w-[460px] flex flex-col items-center">
         {/* Header Texts */}
@@ -61,66 +126,9 @@ export default function LoginPage() {
 
         {/* Form Card */}
         <div className="bg-white border border-zinc-100 rounded-3xl p-8 shadow-sm w-full mb-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Error Message */}
-            {error && (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-                <p className="text-xs font-semibold text-red-600">{error}</p>
-              </div>
-            )}
-
-            {/* Email field */}
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              label="Alamat Email"
-              icon={Mail}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@email.com"
-              required
-            />
-
-            {/* Password field */}
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              label="Password"
-              icon={Lock}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              headerAction={
-                <Link href="#" className="text-xs font-bold text-primary hover:underline">
-                  Lupa password?
-                </Link>
-              }
-              rightIcon={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-zinc-400 hover:text-zinc-600 transition-colors"
-                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                >
-                  {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-                </button>
-              }
-            />
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-6 rounded-xl gap-1.5 py-3"
-            >
-              {isLoading ? "Masuk..." : "Sign In"}
-              {!isLoading && <ChevronRight className="w-4 h-4 mt-0.5" />}
-            </Button>
-          </form>
+          <React.Suspense fallback={<div className="py-12 text-center text-zinc-500 text-sm">Memuat form login...</div>}>
+            <LoginForm />
+          </React.Suspense>
 
           {/* Register Link */}
           <div className="mt-8 text-center text-xs text-zinc-500">

@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Upload, HelpCircle, Check, Send, Sparkles, AlertCircle } from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 import { Button } from "@/app/shared/components/ui/button";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export default function SubmitChallengePage() {
   const params = useParams();
@@ -20,6 +21,8 @@ export default function SubmitChallengePage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isUploaded, setIsUploaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { user } = useUser();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,13 +42,29 @@ export default function SubmitChallengePage() {
       alert("Harap isi tulisan refleksi Anda!");
       return;
     }
+    
+    // Fallback if useUser hasn't initialized yet
+    let targetUserId = user?.id;
+    if (!targetUserId) {
+       try {
+         const res = await fetch("/api/auth/me");
+         const data = await res.json();
+         if (data.user?.id) targetUserId = data.user.id;
+       } catch {}
+    }
+    
+    if (!targetUserId) {
+      alert("Sesi Anda tidak valid. Silakan login kembali.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "demo-student-1",
+          userId: targetUserId,
           challengeId,
           proofUrl: fileName || "Dokumen_Laporan_Selesai.pdf",
           report: reflection,

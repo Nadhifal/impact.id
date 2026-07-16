@@ -4,17 +4,19 @@ import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { TabFilter } from "./components/ui/TabFilter";
 import { NotificationCard } from "./components/section/NotificationCard";
-import { dummyNotifications, NotificationItem } from "./data";
+import { NotificationItem } from "./data";
 import { Button } from "@/app/shared/components/ui/button";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export default function StudentNotificationsPage() {
+  const { user } = useUser();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (userId: string) => {
     try {
-      const res = await fetch("/api/users/demo-student-1/notifications");
+      const res = await fetch(`/api/users/${userId}/notifications`);
       const json = await res.json();
       if (json.success) {
         setNotifications(json.data);
@@ -27,8 +29,25 @@ export default function StudentNotificationsPage() {
   };
 
   React.useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (user?.id) {
+      fetchNotifications(user.id);
+    } else {
+      // Fallback: wait a moment for auth to load
+      const timer = setTimeout(() => {
+        fetch("/api/auth/me")
+          .then(r => r.json())
+          .then(data => {
+            if (data.user?.id) {
+              fetchNotifications(data.user.id);
+            } else {
+              setLoading(false);
+            }
+          })
+          .catch(() => setLoading(false));
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user?.id]);
 
   const handleMarkAsRead = (id: string) => {
     setNotifications((prev) =>

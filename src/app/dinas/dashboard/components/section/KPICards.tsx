@@ -3,9 +3,16 @@
 import React from "react";
 import { GraduationCap, Users, CheckCircle2, TrendingUp } from "lucide-react";
 import { Card } from "../ui/Card";
-import { kpiData } from "../../data";
+import { kpiData as fallbackData } from "../../data";
+import type { KPICardData } from "../../data";
 
-export function KPICards() {
+interface KPICardsProps {
+  kpiData?: KPICardData[];
+}
+
+export function KPICards({ kpiData: propData }: KPICardsProps) {
+  const data = propData ?? fallbackData;
+
   const getIcon = (type: string) => {
     switch (type) {
       case "school":
@@ -38,7 +45,7 @@ export function KPICards() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {kpiData.map((kpi, idx) => (
+      {data.map((kpi, idx) => (
         <Card key={idx} className="flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between">
             <div>

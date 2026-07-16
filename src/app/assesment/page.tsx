@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { X, ChevronRight, ArrowLeft } from "lucide-react";
 import { assessmentQuestions } from "./data";
@@ -11,6 +11,19 @@ export default function AssessmentPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>(
     Array(assessmentQuestions.length).fill(null)
   );
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get logged-in user ID
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user?.id) {
+          setUserId(data.user.id);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const currentQuestion = assessmentQuestions[currentIndex];
   const totalQuestions = assessmentQuestions.length;
@@ -43,16 +56,21 @@ export default function AssessmentPage() {
       const IN = Math.round((categoryScores.IN / (categoryCounts.IN * 4)) * 100);
       const RL = Math.round((categoryScores.RL / (categoryCounts.RL * 4)) * 100);
 
+      // Store in localStorage as cache for immediate display
       localStorage.setItem("hcs_scores", JSON.stringify({ SI, LD, IN, RL }));
 
-      try {
-        await fetch("/api/users/demo-student-1", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scores: { SI, LD, IN, RL } }),
-        });
-      } catch (err) {
-        console.error("Database sync failed for assessment scores:", err);
+      // Save to DB using logged-in user's ID
+      const targetUserId = userId;
+      if (targetUserId) {
+        try {
+          await fetch(`/api/users/${targetUserId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scores: { SI, LD, IN, RL } }),
+          });
+        } catch (err) {
+          console.error("Database sync failed for assessment scores:", err);
+        }
       }
 
       window.location.href = "/siswa/dashboard";

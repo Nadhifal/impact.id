@@ -1,13 +1,46 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { KPICards } from "./components/section/KPICards";
 import { TrendChart } from "./components/section/TrendChart";
 import { ImpactOverviewCard } from "./components/section/ImpactOverviewCard";
 import { MonitoringTable } from "./components/section/MonitoringTable";
 import { Plus } from "lucide-react";
+import type { KPICardData, TrendItem, SchoolMonitorItem } from "./data";
+
+interface DinasStatsData {
+  kpi: KPICardData[];
+  monthlyTrend: TrendItem[];
+  schoolMonitoring: SchoolMonitorItem[];
+}
 
 export default function AggregateDashboardPage() {
+  const [data, setData] = useState<DinasStatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/dinas/stats")
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setData(json.data);
+        }
+      })
+      .catch(err => console.error("Failed to fetch dinas stats:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-8 max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-[#00473e] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm font-semibold text-zinc-500">Memuat dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Title Header */}
@@ -21,12 +54,12 @@ export default function AggregateDashboardPage() {
       </div>
 
       {/* KPI Cards Grid */}
-      <KPICards />
+      <KPICards kpiData={data?.kpi} />
 
       {/* Charts Section Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <TrendChart />
+          <TrendChart trendData={data?.monthlyTrend} />
         </div>
         <div className="lg:col-span-1">
           <ImpactOverviewCard />
@@ -34,7 +67,7 @@ export default function AggregateDashboardPage() {
       </div>
 
       {/* Table Section */}
-      <MonitoringTable />
+      <MonitoringTable monitoringData={data?.schoolMonitoring} />
 
       {/* Floating Action Button */}
       <button

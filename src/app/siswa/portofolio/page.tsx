@@ -8,75 +8,91 @@ import {
   verifiedCredentials,
 } from "./data";
 import { prisma } from "@/lib/prisma";
+import { verifyJWT } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { BioSection } from "./components/section/BioSection";
 import { SidebarSection } from "./components/section/SidebarSection";
 import { KaryaSection } from "./components/section/KaryaSection";
-import { DEMO_USER_ID } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-// Server Component — query Prisma directly
+// Server Component — query Prisma directly using logged-in user
 export default async function SiswaPortfolioPage() {
   let liveCredentials: typeof verifiedCredentials = [];
   let liveBio = bioProfile;
   let liveStats = summaryStats;
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: "demo-student-1" },
-      include: {
-        profile: true,
-        humanCapitalScore: true,
-        submissions: {
-          where: { status: "COMPLETED" },
-          include: { challenge: true, verification: true },
-          orderBy: { updatedAt: "desc" },
-        },
-      },
-    });
+  // Get user ID from auth cookie
+  const cookieStore = await cookies();
+  const token = cookieStore.get("impact_token")?.value;
+  let userId: string | null = null;
 
-    console.log("=== Portfolio page.tsx debug ===");
-    console.log("User found:", !!user);
-    if (user) {
-      console.log("Completed submissions count:", user.submissions.length);
-      console.log("Submissions data:", JSON.stringify(user.submissions, null, 2));
+  if (token) {
+    const payload = await verifyJWT(token);
+    if (payload) {
+      userId = payload.id;
     }
+  }
 
-    if (user) {
-      // Override bio with real DB data
-      liveBio = {
-        ...bioProfile,
-        name: user.name ?? bioProfile.name,
-        institution:
-          user.profile?.schoolName ??
-          user.profile?.city ??
-          bioProfile.institution,
-      };
+  try {
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          profile: true,
+          humanCapitalScore: true,
+          submissions: {
+            where: { status: "COMPLETED" },
+            include: { challenge: true, verification: true },
+            orderBy: { updatedAt: "desc" },
+          },
+        },
+      });
 
-      // Override stats from human capital score
-      const hcs = user.humanCapitalScore;
-      if (hcs) {
-        liveStats = [
-          { label: "Leadership", value: String(Math.round(hcs.leadership)), iconName: "impact" },
-          { label: "Kreativitas", value: String(Math.round(hcs.creativity)), iconName: "projects" },
-          { label: "Kolaborasi", value: String(Math.round(hcs.collaboration)), iconName: "hours" },
-          { label: "Problem Solving", value: String(Math.round(hcs.problemSolving)), iconName: "partners" },
-        ];
-      }
+      if (user) {
+        // Override bio with real DB data
+        liveBio = {
+          ...bioProfile,
+          name: user.name ?? bioProfile.name,
+          institution:
+            user.profile?.schoolName ??
+            user.profile?.city ??
+            bioProfile.institution,
+        };
 
-      // Build credentials from completed+verified submissions
-      if (user.submissions.length > 0) {
-        liveCredentials = user.submissions.map((sub) => ({
-          id: sub.id,
-          type: "VERIFIED CREDENTIAL",
-          title: sub.challenge.title,
-          issuer: "IMPACT.ID",
-          issuedDate: `Diterbitkan: ${new Date(sub.updatedAt).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}`,
-        }));
+        // Override stats from human capital score
+        const hcs = user.humanCapitalScore;
+        if (hcs) {
+          liveStats = [
+            { label: "Leadership", value: String(Math.round(hcs.leadership)), iconName: "impact" },
+            { label: "Kreativitas", value: String(Math.round(hcs.creativity)), iconName: "projects" },
+            { label: "Kolaborasi", value: String(Math.round(hcs.collaboration)), iconName: "hours" },
+            { label: "Problem Solving", value: String(Math.round(hcs.problemSolving)), iconName: "partners" },
+          ];
+        } else {
+          // No HCS yet — show empty stats
+          liveStats = [
+            { label: "Leadership", value: "—", iconName: "impact" },
+            { label: "Kreativitas", value: "—", iconName: "projects" },
+            { label: "Kolaborasi", value: "—", iconName: "hours" },
+            { label: "Problem Solving", value: "—", iconName: "partners" },
+          ];
+        }
+
+        // Build credentials from completed+verified submissions
+        if (user.submissions.length > 0) {
+          liveCredentials = user.submissions.map((sub) => ({
+            id: sub.id,
+            type: "VERIFIED CREDENTIAL",
+            title: sub.challenge.title,
+            issuer: "IMPACT.ID",
+            issuedDate: `Diterbitkan: ${new Date(sub.updatedAt).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}`,
+          }));
+        }
       }
     }
   } catch (err) {

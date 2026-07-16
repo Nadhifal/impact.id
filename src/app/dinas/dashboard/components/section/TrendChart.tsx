@@ -4,10 +4,15 @@ import React, { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Card } from "../ui/Card";
 import { monthlyTrendData, quarterlyTrendData } from "../../data";
+import type { TrendItem } from "../../data";
 
-export function TrendChart() {
+interface TrendChartProps {
+  trendData?: TrendItem[];
+}
+
+export function TrendChart({ trendData }: TrendChartProps) {
   const [activeTab, setActiveTab] = useState<"monthly" | "quarterly">("monthly");
-  const data = activeTab === "monthly" ? monthlyTrendData : quarterlyTrendData;
+  const data = activeTab === "monthly" ? (trendData ?? monthlyTrendData) : quarterlyTrendData;
 
   return (
     <Card className="flex flex-col h-[400px]">

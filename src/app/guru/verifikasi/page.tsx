@@ -5,6 +5,7 @@ import { SubmissionList } from "./components/section/SubmissionList";
 import { AssessmentPanel } from "./components/section/AssessmentPanel";
 import { StatsRow } from "./components/section/StatsRow";
 import { dummySubmissions, dummyStats, Submission } from "./data";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export default function VerificationPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -12,6 +13,7 @@ export default function VerificationPage() {
   const [stats, setStats] = useState(dummyStats);
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
 
   const fetchSubmissions = async () => {
     try {
@@ -90,7 +92,7 @@ export default function VerificationPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teacherId: "demo-teacher-1",
+          teacherId: user?.id,
           feedback: activeSubmission.feedback,
           isApproved: true,
         }),
@@ -112,7 +114,7 @@ export default function VerificationPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teacherId: "demo-teacher-1",
+          teacherId: user?.id,
           feedback: activeSubmission.feedback,
           isApproved: false,
         }),

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,7 @@ import {
   LogOut,
   Brain,
 } from "lucide-react";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -21,12 +22,45 @@ interface SidebarProps {
 
 export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
   const pathname = usePathname();
+  const { user, logout } = useUser();
+  const [storedAvatar, setStoredAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Try localStorage first for immediate display
+    const cached = localStorage.getItem("impact_avatar");
+    if (cached) setStoredAvatar(cached);
+
+    // Then sync from DB
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.avatarUrl) {
+          setStoredAvatar(data.avatarUrl);
+          localStorage.setItem("impact_avatar", data.avatarUrl);
+        }
+      })
+      .catch(() => {/* ignore */});
+  }, []);
+
+  const displayName = user?.name ?? "Siswa";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const menuItems = [
     { name: "Dashboard", href: "/siswa/dashboard", icon: LayoutGrid },
     { name: "Challenges", href: "/siswa/challenges", icon: Award },
     { name: "Portofolio", href: "/siswa/portofolio", icon: Contact },
   ];
+
+  const handleLogout = async () => {
+    localStorage.removeItem("hcs_scores");
+    localStorage.removeItem("impact_avatar");
+    await logout();
+  };
 
   return (
     <>
@@ -90,19 +124,19 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
         {/* Bottom Footer */}
         <div className="pt-6 border-t border-zinc-100 space-y-4">
           <Link
-            href="#"
+            href="/siswa/settings"
             className="flex items-center gap-3.5 py-2 px-4 rounded-xl text-sm font-bold text-zinc-500 hover:text-slate-800 hover:bg-zinc-50/50 transition-colors"
           >
             <Settings className="w-5 h-5 text-zinc-400" />
             Settings
           </Link>
-          <Link
-            href="/auth/login"
-            className="flex items-center gap-3.5 py-2 px-4 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50/50 transition-colors"
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3.5 py-2 px-4 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50/50 transition-colors w-full cursor-pointer"
           >
             <LogOut className="w-5 h-5 text-red-400" />
             Logout
-          </Link>
+          </button>
           <div className="text-[10px] font-bold text-zinc-400 px-4 flex justify-between items-center">
             <span>© 2024 IMPACT.ID</span>
             <div className="flex gap-1.5">
@@ -131,19 +165,25 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
             </button>
           </div>
 
-          {/* Profile Card */}
+          {/* Profile Card — uses auth context data */}
           <div className="flex flex-col items-start space-y-3 mb-8">
             <div className="relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-400">
-              <Image
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80"
-                alt="Difal Avatar"
-                fill
-                className="object-cover"
-                unoptimized
-              />
+              {storedAvatar ? (
+                <Image
+                  src={storedAvatar}
+                  alt={`${displayName} Avatar`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full bg-[#e6f4f1] flex items-center justify-center text-xl font-bold text-[#00473e]">
+                  {initials}
+                </div>
+              )}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 leading-tight">Difal</h2>
+              <h2 className="text-xl font-bold text-slate-900 leading-tight">{displayName.split(" ")[0]}</h2>
               <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">
                 MAHASISWA
               </p>
@@ -199,21 +239,20 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
         {/* Bottom Footer */}
         <div className="pt-6 border-t border-zinc-100 space-y-4">
           <Link
-            href="#"
+            href="/siswa/settings"
             className="flex items-center gap-3.5 py-2 px-4 rounded-xl text-sm font-bold text-zinc-500 hover:text-slate-800 hover:bg-zinc-50/50 transition-colors"
             onClick={onClose}
           >
             <Settings className="w-5 h-5 text-zinc-400" />
             Settings
           </Link>
-          <Link
-            href="/auth/login"
-            className="flex items-center gap-3.5 py-2 px-4 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50/50 transition-colors"
-            onClick={onClose}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3.5 py-2 px-4 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50/50 transition-colors w-full cursor-pointer"
           >
             <LogOut className="w-5 h-5 text-red-400" />
             Logout
-          </Link>
+          </button>
           <div className="text-[10px] font-bold text-zinc-400 px-4 flex justify-between items-center">
             <span>© 2024 IMPACT.ID</span>
             <div className="flex gap-1.5">

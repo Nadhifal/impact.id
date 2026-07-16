@@ -4,9 +4,16 @@ import React from "react";
 import { Filter, Download, ChevronRight } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
-import { schoolMonitoringData } from "../../data";
+import { schoolMonitoringData as fallbackData } from "../../data";
+import type { SchoolMonitorItem } from "../../data";
 
-export function MonitoringTable() {
+interface MonitoringTableProps {
+  monitoringData?: SchoolMonitorItem[];
+}
+
+export function MonitoringTable({ monitoringData: propData }: MonitoringTableProps) {
+  const data = propData ?? fallbackData;
+
   return (
     <Card className="p-0 overflow-hidden">
       {/* Table Title and Action Buttons */}
@@ -56,41 +63,49 @@ export function MonitoringTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {schoolMonitoringData.map((row) => (
-              <tr key={row.id} className="hover:bg-slate-50/50 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 select-none">
-                      {row.type}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">{row.name}</p>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5">{row.district}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm font-bold text-slate-700 text-right select-none">
-                  {row.activeStudents.toLocaleString("id-ID")}
-                </td>
-                <td className="px-6 py-4 text-sm font-bold text-slate-700 text-right select-none">
-                  {row.completedChallenges.toLocaleString("id-ID")}
-                </td>
-                <td className="px-6 py-4 text-sm font-extrabold text-slate-900 text-right select-none">
-                  {row.sdmScore.toFixed(1)}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <Badge status={row.status} />
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <button
-                    className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-700 transition-colors cursor-pointer inline-flex items-center justify-center"
-                    aria-label="Lihat detail"
-                  >
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400 font-medium">
+                  Belum ada data monitoring.
                 </td>
               </tr>
-            ))}
+            ) : (
+              data.map((row) => (
+                <tr key={row.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 select-none">
+                        {row.type}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{row.name}</p>
+                        <p className="text-xs text-slate-400 font-medium mt-0.5">{row.district}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-700 text-right select-none">
+                    {row.activeStudents.toLocaleString("id-ID")}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-700 text-right select-none">
+                    {row.completedChallenges.toLocaleString("id-ID")}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-extrabold text-slate-900 text-right select-none">
+                    {row.sdmScore.toFixed(1)}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <Badge status={row.status} />
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <button
+                      className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-700 transition-colors cursor-pointer inline-flex items-center justify-center"
+                      aria-label="Lihat detail"
+                    >
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
