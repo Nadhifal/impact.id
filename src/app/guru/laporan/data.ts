@@ -36,11 +36,16 @@ export interface RiwayatLaporan {
 // ─── Data ──────────────────────────────────────────────────────────────────
 
 export const siswaOptions: SiswaOption[] = [
-  { id: "1", name: "Ariq Fadillah" },
-  { id: "2", name: "Bagas Wirawan" },
-  { id: "3", name: "Siti Putri" },
-  { id: "4", name: "Nadhif Alfasya" },
-  { id: "5", name: "Beni Setiawan" },
+  { id: "1", name: "Nadhif Alfasya" },
+  { id: "2", name: "Sari Dewi Putri" },
+  { id: "3", name: "Alya Ramadhani" },
+  { id: "4", name: "Rizky Maulana" },
+  { id: "5", name: "Dimas Arya Pratama" },
+  { id: "6", name: "Farah Hasanah" },
+  { id: "7", name: "Yoga Pratama" },
+  { id: "8", name: "Bagas Wirawan" },
+  { id: "9", name: "Cinta Ramadhani" },
+  { id: "10", name: "Eko Prasetyo" },
 ];
 
 export const periodeOptions: PeriodeOption[] = [
@@ -51,16 +56,17 @@ export const periodeOptions: PeriodeOption[] = [
 ];
 
 export const capaianKPIData: CapaianKPI[] = [
-  { icon: "challenge", label: "Challenge selesai", value: 9, badge: "+12% mom", badgeColor: "green" },
-  { icon: "hcs", label: "HCS terkini", value: 81, badge: "Target: 85", badgeColor: "gray" },
-  { icon: "sertifikat", label: "Sertifikat terbit", value: 6, badge: "Valid", badgeColor: "green" },
+  { icon: "challenge", label: "Challenge selesai", value: 12, badge: "+25% mom",    badgeColor: "green" },
+  { icon: "hcs",       label: "HCS terkini",       value: 89, badge: "Target: 90",  badgeColor: "gray" },
+  { icon: "sertifikat",label: "Sertifikat terbit",  value: 8,  badge: "Valid",       badgeColor: "green" },
 ];
 
 export const riwayatLaporanData: RiwayatLaporan[] = [
-  { id: "1", format: "PDF", name: "Capaian Ariq Fadillah", periode: "Smt genap 2026", createdAt: "15 Jul 2026" },
-  { id: "2", format: "PDF", name: "Capaian Ariq Fadillah", periode: "Smt ganjil 2025", createdAt: "2 Feb 2026" },
-  { id: "3", format: "Excel", name: "Capaian Ariq Fadillah – Excel", periode: "Smt ganjil 2025", createdAt: "1 Feb 2026" },
-  { id: "4", format: "PDF", name: "Capaian Ariq Fadillah", periode: "Smt genap 2025", createdAt: "10 Agu 2025" },
-  { id: "5", format: "Excel", name: "Capaian Ariq Fadillah – Excel", periode: "Smt genap 2025", createdAt: "9 Agu 2025" },
-  { id: "6", format: "PDF", name: "Capaian Ariq Fadillah", periode: "Smt ganjil 2024", createdAt: "3 Feb 2025" },
+  { id: "1", format: "PDF",   name: "Capaian Nadhif Alfasya",           periode: "Smt genap 2026",  createdAt: "15 Jul 2026" },
+  { id: "2", format: "PDF",   name: "Capaian Sari Dewi Putri",          periode: "Smt genap 2026",  createdAt: "12 Jul 2026" },
+  { id: "3", format: "Excel", name: "Rekap HCS Seluruh Siswa — Excel",  periode: "Smt genap 2026",  createdAt: "10 Jul 2026" },
+  { id: "4", format: "PDF",   name: "Capaian Nadhif Alfasya",           periode: "Smt ganjil 2025", createdAt: "5 Feb 2026" },
+  { id: "5", format: "Excel", name: "Rekap HCS Seluruh Siswa — Excel",  periode: "Smt ganjil 2025", createdAt: "3 Feb 2026" },
+  { id: "6", format: "PDF",   name: "Capaian Alya Ramadhani",           periode: "Smt ganjil 2025", createdAt: "2 Feb 2026" },
+  { id: "7", format: "PDF",   name: "Capaian Nadhif Alfasya",           periode: "Smt genap 2025",  createdAt: "10 Agu 2025" },
 ];

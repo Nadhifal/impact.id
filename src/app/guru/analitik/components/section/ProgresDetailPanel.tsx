@@ -4,8 +4,8 @@ import React from "react";
 import { Download, Send, Lightbulb, Calendar, ArrowRight } from "lucide-react";
 import { Card } from "../ui/Card";
 import {
-  radarDataAriq,
-  trendDataAriq,
+  radarDataNadhif as radarDataAriq,
+  trendDataNadhif as trendDataAriq,
   targetKuartal,
   statusOnTrack,
   aiRekomendasiAnalitik,
