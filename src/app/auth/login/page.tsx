@@ -2,25 +2,49 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Shield, Zap, ChevronRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, Eye, EyeOff, Shield, Zap, ChevronRight, AlertCircle } from "lucide-react";
 import { AuthLayout } from "../components/AuthLayout";
 import { BenefitCard } from "../components/BenefitCard";
 import { Input } from "@/app/shared/components/ui/input";
 import { Button } from "@/app/shared/components/ui/button";
 
-import { studentAccount } from "@/app/shared/data";
-
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === studentAccount.email) {
-      window.location.href = "/siswa/dashboard";
-    } else {
-      alert("Email salah! Gunakan akun siswa terdaftar: " + studentAccount.email);
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Login gagal. Coba lagi.");
+        return;
+      }
+
+      // Redirect to "from" param if present, otherwise role dashboard
+      const from = searchParams.get("from");
+      router.push(from ?? data.redirectTo);
+      router.refresh();
+    } catch {
+      setError("Tidak dapat terhubung ke server. Coba lagi.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -38,6 +62,14 @@ export default function LoginPage() {
         {/* Form Card */}
         <div className="bg-white border border-zinc-100 rounded-3xl p-8 shadow-sm w-full mb-6">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                <p className="text-xs font-semibold text-red-600">{error}</p>
+              </div>
+            )}
+
             {/* Email field */}
             <Input
               id="email"
@@ -47,7 +79,7 @@ export default function LoginPage() {
               icon={Mail}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@company.com"
+              placeholder="nama@email.com"
               required
             />
 
@@ -82,10 +114,11 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
+              disabled={isLoading}
               className="w-full mt-6 rounded-xl gap-1.5 py-3"
             >
-              Sign In
-              <ChevronRight className="w-4 h-4 mt-0.5" />
+              {isLoading ? "Masuk..." : "Sign In"}
+              {!isLoading && <ChevronRight className="w-4 h-4 mt-0.5" />}
             </Button>
           </form>
 

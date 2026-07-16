@@ -2,28 +2,23 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  Terminal,
-  Briefcase,
-  Palette,
-  Users,
-  Leaf,
-  Microscope,
-  X,
-  Plus,
-  Info,
-  ChevronRight,
-  ArrowLeft
+  Terminal, Briefcase, Palette, Users, Leaf, Microscope,
+  X, Plus, Info, ChevronRight, ArrowLeft
 } from "lucide-react";
 import { AuthLayout } from "../../components/AuthLayout";
 import { Button } from "@/app/shared/components/ui/button";
 import { ProgressIndicator } from "@/app/shared/components/ui/progress-indicator";
 
 export default function RegisterStep3Page() {
+  const router = useRouter();
   const [selectedMinat, setSelectedMinat] = useState<string>("teknologi");
   const [skills, setSkills] = useState<string[]>(["Desain Grafis", "Coding"]);
   const [inputValue, setInputValue] = useState("");
   const [hobbies, setHobbies] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const minatList = [
     { id: "teknologi", label: "Teknologi", icon: Terminal },
@@ -56,9 +51,52 @@ export default function RegisterStep3Page() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = "/siswa/dashboard";
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Retrieve step-2 data
+      const step2Raw = sessionStorage.getItem("register_step2");
+      if (!step2Raw) {
+        router.push("/auth/register/step-2");
+        return;
+      }
+      const step2 = JSON.parse(step2Raw);
+
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: step2.fullName,
+          email: step2.email,
+          password: step2.password,
+          role: "STUDENT",
+          phone: step2.phone,
+          school: step2.school,
+          province: step2.province,
+          city: step2.city,
+          interests: selectedMinat,
+          skills: skills.join(","),
+          hobbies,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Registrasi gagal. Coba lagi.");
+        return;
+      }
+
+      sessionStorage.removeItem("register_step2");
+      router.push(data.redirectTo ?? "/siswa/dashboard");
+      router.refresh();
+    } catch {
+      setError("Tidak dapat terhubung ke server. Coba lagi.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,6 +114,12 @@ export default function RegisterStep3Page() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <p className="text-xs font-semibold text-red-600">{error}</p>
+            </div>
+          )}
           {/* Bidang Minat */}
           <div className="space-y-4">
             <h3 className="text-base font-bold text-slate-900">Bidang Minat</h3>
@@ -179,7 +223,8 @@ export default function RegisterStep3Page() {
             </Link>
             <Button
               type="submit"
-              className="px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white gap-1.5"
+              disabled={isLoading}
+              className="px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white gap-1.5 disabled:opacity-50"
             >
               Selesaikan
               <ChevronRight className="w-4 h-4" />

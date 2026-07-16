@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { User, Mail, Phone, GraduationCap, Lock, Eye, EyeOff, ChevronRight } from "lucide-react";
 import { AuthLayout } from "../../components/AuthLayout";
 import { Input } from "@/app/shared/components/ui/input";
@@ -10,6 +11,7 @@ import { Button } from "@/app/shared/components/ui/button";
 import { ProgressIndicator } from "@/app/shared/components/ui/progress-indicator";
 
 export default function RegisterStep2Page() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -28,7 +30,9 @@ export default function RegisterStep2Page() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = "/auth/register/step-3";
+    // Save data to sessionStorage so step-3 can complete registration
+    sessionStorage.setItem("register_step2", JSON.stringify(formData));
+    router.push("/auth/register/step-3");
   };
 
   const provinceOptions = [

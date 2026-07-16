@@ -7,7 +7,7 @@ import { FeaturesSection } from "./components/sections/FeaturesSection";
 import { ProcessSection } from "./components/sections/ProcessSection";
 import { TestimonialsSection } from "./components/sections/TestimonialsSection";
 import { VerificationSection } from "./components/sections/VerificationSection";
-import { Footer } from "./components/layouts/footer";
+import { GlobalFooter } from "@/app/shared/components/layouts/Footer";
 
 export default function Home() {
   return (
@@ -32,7 +32,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <GlobalFooter />
     </div>
   );
 }

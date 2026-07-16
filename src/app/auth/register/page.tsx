@@ -21,14 +21,14 @@ export default function RegisterStep1Page() {
       title: "Guru/Dosen",
       description: "Bagikan ilmu, pantau progres, dan kelola kelas digital.",
       icon: Users,
-      href: "#",
+      href: "/auth/register/guru",
     },
     {
       id: "sekolah",
-      title: "Sekolah/Dinas",
+      title: "Dinas Pendidikan",
       description: "Integrasi data wilayah dan manajemen institusi terpadu.",
       icon: School,
-      href: "#",
+      href: "/auth/register/dinas",
     },
   ];
 

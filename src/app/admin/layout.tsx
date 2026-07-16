@@ -1,7 +1,7 @@
 import React from "react";
 import { Sidebar } from "./layouts/sidebar";
 import { Header } from "./layouts/header";
-import { Footer } from "./layouts/footer";
+import { GlobalFooter } from "@/app/shared/components/layouts/Footer";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
 
         {/* Footer */}
-        <Footer />
+        <GlobalFooter />
       </div>
     </div>
   );

@@ -2,97 +2,28 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, Bell, Settings } from "lucide-react";
+import { Menu, Bell, Settings, LogOut } from "lucide-react";
 import { Sidebar } from "./sidebar";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export function Header() {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, logout } = useUser();
 
-  const navLinks = [
-    { name: "Dashboard", href: "/siswa/dashboard" },
-    { name: "Challenges", href: "/siswa/challenges" },
-    { name: "Portofolio", href: "/siswa/portofolio" },
-  ];
+  // Avatar initials fallback
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    : "??";
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-white border-b border-zinc-100 px-6 py-4 md:px-12">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo & Desktop Nav */}
-          <div className="flex items-center gap-12">
-            <Link href="/" className="text-xl font-black text-slate-900 tracking-tight">
-              IMPACT.ID
-            </Link>
-
-            {/* Desktop Links */}
-            <nav className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className={`text-sm font-semibold tracking-wide py-1.5 border-b-2 transition-all ${isActive
-                        ? "border-[#00473e] text-[#00473e]"
-                        : "border-transparent text-zinc-500 hover:text-slate-800"
-                      }`}
-                  >
-                    {link.name}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Right Header Controls */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <Link
-              href="/siswa/notifications"
-              className={`p-2 hover:bg-zinc-50 rounded-full transition-all cursor-pointer relative ${
-                pathname === "/siswa/notifications"
-                  ? "text-primary"
-                  : "text-zinc-400 hover:text-slate-800"
-              }`}
-              aria-label="Notifikasi"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </Link>
-
-            <Link
-              href="/siswa/settings"
-              className={`p-2 hover:bg-zinc-50 rounded-full transition-all cursor-pointer ${
-                pathname === "/siswa/settings"
-                  ? "text-primary border-b-2 border-primary rounded-none pb-0.5"
-                  : "text-zinc-400 hover:text-slate-800"
-              }`}
-              aria-label="Settings"
-            >
-              <Settings className="w-5 h-5" />
-            </Link>
-
-            {/* Profile Avatar */}
-            <Link
-              href="/siswa/profile"
-              className={`relative w-9 h-9 rounded-full overflow-hidden border transition-all ${
-                pathname === "/siswa/profile"
-                  ? "border-primary ring-2 ring-primary/20"
-                  : "border-zinc-200"
-              }`}
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80"
-                alt="Profile Avatar"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </Link>
-
-            {/* Hamburger Button for Mobile Drawer */}
+      <header className="sticky top-0 z-40 w-full bg-white border-b border-zinc-100 px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left: Hamburger + Logo (mobile) */}
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsDrawerOpen(true)}
               className="md:hidden p-2 text-zinc-500 hover:text-slate-800 hover:bg-zinc-50 rounded-lg transition-all cursor-pointer"
@@ -100,14 +31,74 @@ export function Header() {
             >
               <Menu className="w-6 h-6" />
             </button>
+            <Link href="/" className="md:hidden text-xl font-black text-slate-900 tracking-tight">
+              IMPACT.ID
+            </Link>
+          </div>
+
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-4 sm:gap-6 ml-auto">
+            {/* Notifications */}
+            <Link
+              href="/siswa/notifications"
+              className={`p-2 hover:bg-zinc-50 rounded-full transition-all cursor-pointer relative ${
+                pathname === "/siswa/notifications" ? "text-[#00473e]" : "text-zinc-400 hover:text-slate-800"
+              }`}
+              aria-label="Notifikasi"
+            >
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+            </Link>
+
+            {/* Settings */}
+            <Link
+              href="/siswa/settings"
+              className={`p-2 hover:bg-zinc-50 rounded-full transition-all cursor-pointer ${
+                pathname === "/siswa/settings" ? "text-[#00473e]" : "text-zinc-400 hover:text-slate-800"
+              }`}
+              aria-label="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
+
+            {/* Avatar Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu((p) => !p)}
+                className="relative w-9 h-9 rounded-full overflow-hidden border border-zinc-200 hover:border-[#00473e] transition-all bg-[#e6f4f1] flex items-center justify-center text-xs font-bold text-[#00473e] cursor-pointer"
+                aria-label="User menu"
+              >
+                {initials}
+              </button>
+
+              {showUserMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowUserMenu(false)}
+                  />
+                  <div className="absolute right-0 top-11 z-50 w-52 bg-white border border-zinc-100 rounded-2xl shadow-lg py-2 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-zinc-50">
+                      <p className="text-sm font-bold text-slate-800 truncate">{user?.name ?? "—"}</p>
+                      <p className="text-xs text-slate-400 truncate">{user?.email ?? "—"}</p>
+                    </div>
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Keluar
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer Sidebar */}
+      {/* Mobile Drawer */}
       <Sidebar isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
-
-      {/* Drawer Overlay */}
       {isDrawerOpen && (
         <div
           onClick={() => setIsDrawerOpen(false)}

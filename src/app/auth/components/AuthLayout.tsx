@@ -1,6 +1,6 @@
 import React from "react";
 import { Navbar } from "@/app/components/layouts/navbar";
-import { Footer } from "@/app/components/layouts/footer";
+import { GlobalFooter } from "@/app/shared/components/layouts/Footer";
 
 export interface AuthLayoutProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ export function AuthLayout({ children, showAbstractBackground = false }: AuthLay
         </div>
       </main>
 
-      <Footer />
+      <GlobalFooter />
     </div>
   );
 }

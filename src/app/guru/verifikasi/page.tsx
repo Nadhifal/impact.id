@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sidebar } from "./components/section/Sidebar";
-import { Header } from "./components/section/Header";
 import { SubmissionList } from "./components/section/SubmissionList";
 import { AssessmentPanel } from "./components/section/AssessmentPanel";
 import { StatsRow } from "./components/section/StatsRow";
@@ -129,13 +127,8 @@ export default function VerificationPage() {
     }
   };
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Count pending submissions
-  const pendingCount = submissions.filter((sub) => sub.status === "baru").length;
-
   return (
-    <div className="flex bg-[#f8fafb] min-h-screen text-slate-800 font-sans">
+    <div className="space-y-8 max-w-7xl mx-auto w-full">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-bounce bg-[#00473e] text-white border border-[#8ce1d5]/30 px-5 py-3.5 rounded-xl shadow-lg flex items-center gap-3">
@@ -144,48 +137,46 @@ export default function VerificationPage() {
         </div>
       )}
 
-      {/* Left Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-
-      {/* Main Content Scroll Container */}
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto">
-        {/* Header */}
-        <Header pendingCount={pendingCount} onMenuClick={() => setIsSidebarOpen(true)} />
-
-        {/* Dashboard Grid */}
-        <main className="flex-1 p-8 space-y-8">
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-            {/* Left Column: Submission List */}
-            <div className="xl:col-span-4">
-              <SubmissionList
-                submissions={submissions}
-                selectedId={selectedId}
-                onSelect={handleSelectSubmission}
-              />
-            </div>
-
-            {/* Right Column: Assessment Detail */}
-            <div className="xl:col-span-8">
-              {activeSubmission ? (
-                <AssessmentPanel
-                  submission={activeSubmission}
-                  onUpdateScores={handleUpdateScores}
-                  onUpdateFeedback={handleUpdateFeedback}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
-                />
-              ) : (
-                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center text-slate-450 font-semibold text-sm">
-                  {loading ? "Memuat data dari database..." : "Tidak ada submission dari database."}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Statistics Section */}
-          <StatsRow stats={stats} />
-        </main>
+      {/* Title */}
+      <div>
+        <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+          Verifikasi Submission
+        </h2>
+        <p className="text-sm font-medium text-slate-500 mt-1">
+          Tinjau pengajuan tugas dan berikan penilaian kompetensi serta saran pengembangan.
+        </p>
       </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Submission List */}
+        <div className="xl:col-span-4">
+          <SubmissionList
+            submissions={submissions}
+            selectedId={selectedId}
+            onSelect={handleSelectSubmission}
+          />
+        </div>
+
+        {/* Right Column: Assessment Detail */}
+        <div className="xl:col-span-8">
+          {activeSubmission ? (
+            <AssessmentPanel
+              submission={activeSubmission}
+              onUpdateScores={handleUpdateScores}
+              onUpdateFeedback={handleUpdateFeedback}
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center text-slate-400 font-semibold text-sm">
+              {loading ? "Memuat data dari database..." : "Tidak ada submission dari database."}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Statistics Section */}
+      <StatsRow stats={stats} />
     </div>
   );
 }
