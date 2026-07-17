@@ -22,8 +22,8 @@ export function Sidebar() {
       icon: LayoutDashboard,
     },
     {
-      name: "Manage website",
-      href: "/admin/manage-website",
+      name: "Settings",
+      href: "/admin/settings",
       icon: Globe,
     },
     {
