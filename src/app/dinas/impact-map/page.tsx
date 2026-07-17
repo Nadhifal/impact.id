@@ -1,30 +1,67 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { MapKPICards } from "./components/section/MapKPICards";
 import { InteractiveMap } from "./components/section/InteractiveMap";
 import { RecentHighlights } from "./components/section/RecentHighlights";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 
 export default function NationalImpactMapPage() {
+  const [mapData, setMapData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dinas/impact-map");
+      const json = await res.json();
+      if (json.success) {
+        setMapData(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch impact-map data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Title Header */}
-      <div>
-        <h2 className="text-3xl font-black text-slate-800 tracking-tight">National Impact Overview</h2>
-        <p className="text-sm font-medium text-slate-500 mt-1">
-          Real-time distribution of educational and social development projects across Indonesia.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">National Impact Overview</h2>
+          <p className="text-sm font-medium text-slate-500 mt-1">
+            Real-time distribution of educational and social development projects across Indonesia.
+            {mapData && (
+              <span className="ml-2 text-[#00473e] font-bold">
+                ({mapData.kpis.totalProjects} proyek aktif, {mapData.kpis.totalStudents} siswa)
+              </span>
+            )}
+          </p>
+        </div>
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-40"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <span>Refresh</span>
+        </button>
       </div>
 
       {/* KPI stats */}
-      <MapKPICards />
+      <MapKPICards kpis={mapData?.kpis} />
 
       {/* Interactive Map & Rankings */}
-      <InteractiveMap />
+      <InteractiveMap regions={mapData?.regions} />
 
       {/* Recent Highlights */}
-      <RecentHighlights />
+      <RecentHighlights highlights={mapData?.highlights} />
 
       {/* Floating Action Button */}
       <button

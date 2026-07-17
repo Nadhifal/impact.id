@@ -1,13 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BuatLaporanSiswaSection } from "./components/section/BuatLaporanSiswaSection";
 import { RingkasanCapaianSection } from "./components/section/RingkasanCapaianSection";
 import { RiwayatLaporanTable } from "./components/section/RiwayatLaporanTable";
-import { siswaOptions } from "./data";
+import { SiswaOption } from "./data";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export default function LaporanCapaianPage() {
   const [selectedSiswaId, setSelectedSiswaId] = useState("1");
+  const [siswaOptions, setSiswaOptions] = useState<SiswaOption[]>([]);
+  const { user } = useUser();
+
+  const fetchStudents = useCallback(async () => {
+    try {
+      const params = user?.id ? `?teacherId=${user.id}` : "";
+      const res = await fetch(`/api/guru/students${params}`);
+      const json = await res.json();
+      if (json.success && json.data.students.length > 0) {
+        const options: SiswaOption[] = json.data.students.map((s: any) => ({
+          id: s.id,
+          name: s.name,
+        }));
+        setSiswaOptions(options);
+        setSelectedSiswaId(options[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
   const selectedSiswa = siswaOptions.find((s) => s.id === selectedSiswaId) ?? siswaOptions[0];
 
   return (
@@ -26,7 +52,9 @@ export default function LaporanCapaianPage() {
       <BuatLaporanSiswaSection />
 
       {/* Ringkasan Capaian */}
-      <RingkasanCapaianSection siswaName={selectedSiswa.name} />
+      {selectedSiswa && (
+        <RingkasanCapaianSection siswaName={selectedSiswa.name} />
+      )}
 
       {/* Riwayat Laporan */}
       <RiwayatLaporanTable />

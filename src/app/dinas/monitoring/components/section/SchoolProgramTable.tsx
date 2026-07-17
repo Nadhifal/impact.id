@@ -4,16 +4,32 @@ import React, { useState } from "react";
 import { Download, Eye, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "../ui/Card";
 import { StatusBadge } from "../ui/StatusBadge";
-import { schoolProgramData, filterWilayahOptions, filterProgramOptions } from "../../data";
+import { schoolProgramData, filterWilayahOptions, filterProgramOptions, SchoolProgramStatus } from "../../data";
 
 const ITEMS_PER_PAGE = 3;
 
-export function SchoolProgramTable() {
+interface SchoolProgramTableProps {
+  schools?: any[];
+}
+
+export function SchoolProgramTable({ schools }: SchoolProgramTableProps) {
   const [wilayah, setWilayah] = useState("all");
   const [program, setProgram] = useState("all");
   const [page, setPage] = useState(1);
 
-  const filtered = schoolProgramData.filter((item) => {
+  const displaySchools = schools
+    ? schools.map((s, idx) => ({
+        id: String(idx + 1),
+        schoolName: s.schoolName,
+        schoolId: `ID: ${20200000 + idx}`,
+        wilayah: s.city || s.province || "—",
+        program: s.totalSubmissions > 0 ? "IMPACT Challenge Semester" : "Kurikulum Merdeka",
+        status: (s.avgHcs >= 75 ? "Sesuai Jadwal" : s.avgHcs >= 60 ? "Terhambat" : "Belum Mulai") as SchoolProgramStatus,
+        progress: s.totalSubmissions > 0 ? Math.round((s.completedSubmissions / s.totalSubmissions) * 100) : 0,
+      }))
+    : schoolProgramData;
+
+  const filtered = displaySchools.filter((item) => {
     const matchWilayah =
       wilayah === "all" ||
       item.wilayah.toLowerCase().replace(/\s/g, "-") === wilayah;

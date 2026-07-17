@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -12,6 +12,8 @@ async function main() {
   await prisma.assessment.deleteMany({});
   await prisma.profile.deleteMany({});
   await prisma.challenge.deleteMany({});
+  await prisma.adminLog.deleteMany({});
+  await prisma.landingPageContent.deleteMany({});
   await prisma.user.deleteMany({});
 
   console.log('🌱 Mulai seeding...\n');
@@ -177,6 +179,79 @@ async function main() {
     prisma.portfolio.create({ data: { userId: 'student-4', title: 'UMKM Kota Serang Goes Digital', description: 'Mendampingi 8 pedagang kecil dalam pembuatan Google Business Profile, menghasilkan peningkatan pelanggan baru 25%.', impactScore: 420 } }),
   ]);
   console.log('✅ 4 portfolio dibuat');
+
+  // ───────────────────────────────────────────
+  // LANDING PAGE CONTENT
+  // ───────────────────────────────────────────
+  await Promise.all([
+    prisma.landingPageContent.create({
+      data: {
+        key: 'stats',
+        value: JSON.stringify([
+          { value: "15k+", label: "Impact Score" },
+          { value: "420", label: "Project Selesai" },
+          { value: "AI Career Mentor", label: "98% Match dengan industri tech terkini.", highlight: true },
+        ])
+      }
+    }),
+    prisma.landingPageContent.create({
+      data: {
+        key: 'features',
+        value: JSON.stringify([
+          {
+            id: "personalized-path",
+            title: "Personalized Path",
+            description: "AI menganalisis minat dan bakatmu untuk menyusun kurikulum yang benar-benar personal.",
+            image: "/images/personalized_path.png",
+            iconName: "Personalized",
+          },
+          {
+            id: "smart-portfolio",
+            title: "Smart Portfolio",
+            description: "Setiap proyek yang kamu buat secara otomatis diverifikasi dan dicatat dalam blockchain.",
+            image: "/images/smart_portfolio.png",
+            iconName: "SmartPortfolio",
+          },
+        ])
+      }
+    }),
+    prisma.landingPageContent.create({
+      data: {
+        key: 'processSteps',
+        value: JSON.stringify([
+          { number: 1, title: "Pendaftaran", description: "Daftar akun dan lengkapi profil profesionalmu." },
+          { number: 2, title: "Assessment AI", description: "Ikuti tes awal untuk memetakan kekuatan kognitifmu." },
+          { number: 3, title: "Pilih Track Proyek", description: "Pilih tantangan nyata dari mitra industri kami." },
+          { number: 4, title: "Bimbingan Mentor", description: "Dapatkan feedback langsung dari praktisi ahli." },
+          { number: 5, title: "Penyelesaian Karya", description: "Selesaikan proyek dan unggah ke ekosistem kami." },
+          { number: 6, title: "Verifikasi Blockchain", description: "Pencatatan prestasi secara permanen di ledger." },
+          { number: 7, title: "Koneksi Karir", description: "Direkomendasikan langsung ke jaringan HR terbaik." },
+        ])
+      }
+    }),
+    prisma.landingPageContent.create({
+      data: {
+        key: 'testimonial',
+        value: JSON.stringify({
+          name: "Andini P.",
+          role: "UI/UX Designer @ TechIndo",
+          avatar: "/images/andini_avatar.png",
+          quote: "IMPACT.ID membantu saya membangun portofolio yang tidak hanya cantik, tapi punya impact nyata bagi UMKM sekitar. Proses verifikasi blockchain memberikan kepercayaan diri tinggi saat melamar ke Top Tech Companies.",
+          rating: 5,
+        })
+      }
+    }),
+    prisma.landingPageContent.create({
+      data: {
+        key: 'verification',
+        value: JSON.stringify({
+          id: "IMPACT-ID-8821-2024-CISAUK",
+          status: "Verified on Ledger",
+        })
+      }
+    })
+  ]);
+  console.log('✅ Landing page content seeded');
 
   // ───────────────────────────────────────────
   // SUMMARY

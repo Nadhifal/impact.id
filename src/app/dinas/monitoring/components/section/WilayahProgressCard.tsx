@@ -23,7 +23,26 @@ function getValueColor(color: WilayahProgress["color"]) {
   return color === "red" ? "text-rose-600 font-bold" : "text-slate-700 font-semibold";
 }
 
-export function WilayahProgressCard() {
+interface WilayahProgressCardProps {
+  regions?: any[];
+}
+
+export function WilayahProgressCard({ regions }: WilayahProgressCardProps) {
+  const displayProgressData = regions
+    ? regions.map((r) => {
+        const percentage = Math.round(r.avgHcs);
+        let color: "green" | "teal" | "gray" | "red" = "green";
+        if (percentage < 40) color = "red";
+        else if (percentage < 60) color = "gray";
+        else if (percentage < 80) color = "teal";
+        return {
+          name: r.province,
+          percentage,
+          color,
+        };
+      })
+    : wilayahProgressData;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       {/* Progress card – 2/3 */}

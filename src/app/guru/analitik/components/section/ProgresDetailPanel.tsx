@@ -143,8 +143,16 @@ function TrendSparkline({ data }: { data: { bulan: string; hcs: number }[] }) {
   );
 }
 
-export function ProgresDetailPanel({ selectedId }: ProgresDetailPanelProps) {
-  const siswa = siswaBimbinganList.find((s) => s.id === selectedId) ?? siswaBimbinganList[0];
+interface ProgresDetailPanelProps {
+  selectedId: string;
+  studentDetail?: any;
+}
+
+export function ProgresDetailPanel({ selectedId, studentDetail }: ProgresDetailPanelProps) {
+  const defaultSiswa = siswaBimbinganList.find((s) => s.id === selectedId) ?? siswaBimbinganList[0];
+  const name = studentDetail?.name ?? defaultSiswa.name;
+  const displayRadarData = studentDetail?.radarData ?? radarDataAriq;
+  const displayTrendData = studentDetail?.trendData ?? trendDataAriq;
 
   return (
     <div className="flex flex-col gap-5">
@@ -153,7 +161,7 @@ export function ProgresDetailPanel({ selectedId }: ProgresDetailPanelProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-base font-bold text-slate-800">
-            Progres {siswa.name}
+            Progres {name}
           </h3>
           <div className="flex items-center gap-2">
             <button className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-2">
@@ -173,7 +181,7 @@ export function ProgresDetailPanel({ selectedId }: ProgresDetailPanelProps) {
               Kompetensi Inti
             </p>
             <div className="flex justify-center">
-              <RadarChart data={radarDataAriq} />
+              <RadarChart data={displayRadarData} />
             </div>
           </div>
 
@@ -184,7 +192,7 @@ export function ProgresDetailPanel({ selectedId }: ProgresDetailPanelProps) {
                 Tren Capaian HCS
               </p>
               <div className="bg-slate-50 rounded-xl p-4">
-                <TrendSparkline data={trendDataAriq} />
+                <TrendSparkline data={displayTrendData} />
               </div>
             </div>
 

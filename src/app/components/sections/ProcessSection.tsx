@@ -1,8 +1,8 @@
 import React from "react";
-import { processSteps } from "../../data";
+import { processSteps as defaultProcessSteps } from "../../data";
 import { ProcessCard } from "../ui/ProcessCard";
 
-export function ProcessSection() {
+export function ProcessSection({ processSteps = defaultProcessSteps }: { processSteps?: typeof defaultProcessSteps }) {
   const firstRowSteps = processSteps.slice(0, 4);
   const secondRowSteps = processSteps.slice(4);
 

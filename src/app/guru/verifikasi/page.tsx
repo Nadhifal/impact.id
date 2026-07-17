@@ -88,11 +88,25 @@ export default function VerificationPage() {
   const handleApprove = async () => {
     if (!activeSubmission) return;
     try {
+      let targetTeacherId = user?.id;
+      if (!targetTeacherId) {
+        try {
+          const res = await fetch("/api/auth/me");
+          const data = await res.json();
+          if (data.user?.id) targetTeacherId = data.user.id;
+        } catch {}
+      }
+      
+      if (!targetTeacherId) {
+        alert("Sesi Anda tidak valid. Silakan login kembali.");
+        return;
+      }
+
       const response = await fetch(`/api/submissions/${activeSubmission.id}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teacherId: user?.id,
+          teacherId: targetTeacherId,
           feedback: activeSubmission.feedback,
           isApproved: true,
         }),
@@ -110,11 +124,25 @@ export default function VerificationPage() {
   const handleReject = async () => {
     if (!activeSubmission) return;
     try {
+      let targetTeacherId = user?.id;
+      if (!targetTeacherId) {
+        try {
+          const res = await fetch("/api/auth/me");
+          const data = await res.json();
+          if (data.user?.id) targetTeacherId = data.user.id;
+        } catch {}
+      }
+      
+      if (!targetTeacherId) {
+        alert("Sesi Anda tidak valid. Silakan login kembali.");
+        return;
+      }
+
       const response = await fetch(`/api/submissions/${activeSubmission.id}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teacherId: user?.id,
+          teacherId: targetTeacherId,
           feedback: activeSubmission.feedback,
           isApproved: false,
         }),

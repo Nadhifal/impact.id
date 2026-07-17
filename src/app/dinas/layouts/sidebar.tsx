@@ -12,9 +12,11 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useUser();
 
   const menuItems = [
     {
@@ -86,13 +88,13 @@ export function Sidebar() {
           <Settings className="w-5 h-5 text-slate-400" />
           <span>Settings</span>
         </Link>
-        <Link
-          href="#"
-          className="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 cursor-pointer text-left"
         >
           <LogOut className="w-5 h-5 text-slate-400" />
           <span>Logout</span>
-        </Link>
+        </button>
       </div>
     </aside>
   );

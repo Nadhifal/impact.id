@@ -2,10 +2,10 @@ import React from "react";
 import { Button } from "@/app/shared/components/ui/button";
 import { Card } from "@/app/shared/components/ui/card";
 import { VerificationStatusCard } from "../ui/VerificationStatusCard";
-import { verification } from "../../data";
+import { verification as defaultVerification } from "../../data";
 import { ArrowRight, QrCode } from "lucide-react";
 
-export function VerificationSection() {
+export function VerificationSection({ verification = defaultVerification }: { verification?: typeof defaultVerification }) {
   return (
     <section className="py-20 bg-slate-50 flex items-center justify-center">
       <div className="max-w-md w-full px-6">

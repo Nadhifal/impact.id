@@ -5,7 +5,21 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "../ui/Card";
 import { mapHighlights } from "../../data";
 
-export function RecentHighlights() {
+interface RecentHighlightsProps {
+  highlights?: any[];
+}
+
+export function RecentHighlights({ highlights }: RecentHighlightsProps) {
+  const displayHighlights = highlights && highlights.length > 0
+    ? highlights.map((hl) => ({
+        id: hl.id,
+        region: hl.category || "General",
+        title: hl.projectTitle,
+        description: `${hl.studentName} menyelesaikan project "${hl.projectTitle}" pada ${hl.date}.`,
+        imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&h=400&q=80",
+      }))
+    : mapHighlights;
+
   return (
     <div className="space-y-6">
       {/* Header row */}
@@ -19,7 +33,7 @@ export function RecentHighlights() {
 
       {/* Grid of highlight cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {mapHighlights.map((hl) => (
+        {displayHighlights.map((hl) => (
           <Card key={hl.id} className="p-0 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full border-slate-200">
             {/* Image banner */}
             <div className="relative h-48 w-full bg-slate-100 overflow-hidden">

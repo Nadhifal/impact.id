@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/prisma";
 
-// Inisialisasi Google GenAI dengan API Key dari .env
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function POST(request: Request) {
   try {
+    // Inisialisasi Google GenAI dengan API Key dari .env (dievaluasi saat runtime)
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
     const body = await request.json();
     const { message, challengeId, history = [] } = body;
 
@@ -50,13 +50,29 @@ ${context}
       }
     ];
 
-    // Panggil model Gemini
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: contents,
-    });
+    // Daftar model fallback jika server sibuk (503)
+    const modelsToTry = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-3.1-flash-lite"];
+    let reply = "";
+    let lastError = null;
 
-    const reply = response.text;
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: contents,
+        });
+        reply = response.text ?? "";
+        break; // Berhasil, keluar dari loop
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[Gemini API] Model ${modelName} gagal:`, err.message || err);
+        // Lanjut ke model berikutnya
+      }
+    }
+
+    if (!reply) {
+      throw lastError || new Error("Semua model Gemini sedang sibuk atau gagal.");
+    }
 
     return NextResponse.json({
       success: true,
@@ -75,7 +91,7 @@ ${context}
 
     return NextResponse.json({
       success: true,
-      reply: `[Mode Offline - Gemini Quota Exceeded]\n\n${randomReply}\n\n(Catatan: Silakan cek kuota API Key Gemini Anda di Google Cloud Console untuk mengaktifkan AI secara penuh)`
+      reply: `[Mode Offline - Gemini Quota Exceeded]\n\nERROR_DEBUG: ${error.message || String(error)}\n\n${randomReply}\n\n(Catatan: Silakan cek kuota API Key Gemini Anda di Google Cloud Console untuk mengaktifkan AI secara penuh)`
     });
   }
 }

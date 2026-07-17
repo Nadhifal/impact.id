@@ -21,8 +21,13 @@ function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-export async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Allow public landing page GET API
+  if (pathname === "/api/admin/landing-page" && req.method === "GET") {
+    return NextResponse.next();
+  }
 
   // Allow public paths
   if (isPublic(pathname)) return NextResponse.next();
@@ -31,6 +36,9 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("impact_token")?.value;
 
   if (!token) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const loginUrl = new URL("/auth/login", req.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
@@ -38,6 +46,11 @@ export async function middleware(req: NextRequest) {
 
   const payload = await verifyJWT(token);
   if (!payload) {
+    if (pathname.startsWith("/api/")) {
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      response.cookies.set("impact_token", "", { maxAge: 0, path: "/" });
+      return response;
+    }
     const loginUrl = new URL("/auth/login", req.url);
     loginUrl.searchParams.set("from", pathname);
     const response = NextResponse.redirect(loginUrl);
@@ -50,6 +63,9 @@ export async function middleware(req: NextRequest) {
   const requiredRole = getRoleForPath(pathname);
 
   if (requiredRole && payload.role !== requiredRole) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     // Redirect to user's own dashboard
     const dashboardUrl = new URL(
       ROLE_DASHBOARD[payload.role] ?? "/auth/login",

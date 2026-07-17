@@ -5,10 +5,10 @@ import { Card } from "@/app/shared/components/ui/card";
 import { StatCard } from "../ui/StatCard";
 import { HighlightCard } from "../ui/HighlightCard";
 import { Badge } from "@/app/shared/components/ui/badge";
-import { stats } from "../../data";
+import { stats as defaultStats } from "../../data";
 import { Sparkles, ArrowRight } from "lucide-react";
 
-export function HeroSection() {
+export function HeroSection({ stats = defaultStats }: { stats?: typeof defaultStats }) {
   return (
     <section className="relative overflow-hidden py-16 md:py-24 bg-gradient-to-b from-[#f0f8f7] via-[#f7fcfb] to-white">
       {/* Subtle background glow */}

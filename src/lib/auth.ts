@@ -51,6 +51,7 @@ export const ROLE_PREFIX: Record<string, string> = {
 export function getRoleForPath(pathname: string): string | null {
   for (const [role, prefix] of Object.entries(ROLE_PREFIX)) {
     if (pathname.startsWith(prefix)) return role;
+    if (pathname.startsWith(`/api${prefix}`)) return role;
   }
   return null;
 }

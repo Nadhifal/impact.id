@@ -91,8 +91,20 @@ export default function StudentProfilePage() {
   const displayName = profileData?.name ?? user?.name ?? "—";
   const displayEmail = profileData?.email ?? user?.email ?? "—";
   const interests = (() => {
-    try { return JSON.parse(profileData?.profile?.interests ?? "[]") as string[]; }
-    catch { return profileData?.profile?.interests ? [profileData.profile.interests] : []; }
+    const raw = profileData?.profile?.interests;
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      if (typeof parsed === "string") return parsed.split(",").map((s) => s.trim());
+      return [String(parsed)];
+    } catch {
+      if (typeof raw === "string") {
+        return raw.split(",").map((s) => s.trim());
+      }
+      return [String(raw)];
+    }
   })();
   const initials = displayName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 

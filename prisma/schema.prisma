@@ -26,6 +26,7 @@ model User {
   submissions       Submission[]
   portfolios        Portfolio[]
   verificationsDone Verification[]     @relation("TeacherVerifications")
+  adminActions      AdminLog[]         @relation("AdminActions")
 }
 
 model Profile {
@@ -112,4 +113,21 @@ model Portfolio {
   impactScore Int
   blockchainTx String? 
   createdAt   DateTime @default(now())
+}
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     User     @relation("AdminActions", fields: [adminId], references: [id])
+  activity  String
+  highlight String?
+  module    String   // "CHALLENGE" | "USER" | "SERTIFIKAT" | "SISTEM" | "PENGATURAN"
+  createdAt DateTime @default(now())
+}
+
+model LandingPageContent {
+  id        String   @id @default(uuid())
+  key       String   @unique  // e.g. "stats", "features", "testimonial", "processSteps"
+  value     String   // JSON string
+  updatedAt DateTime @updatedAt
 }

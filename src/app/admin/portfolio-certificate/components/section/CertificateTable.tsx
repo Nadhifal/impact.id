@@ -5,15 +5,23 @@ import { Search, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
 import { Card } from "../../../layouts/ui/Card";
 import { Badge } from "../../../layouts/ui/Badge";
 import { CertificateItem } from "../../data";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 interface CertificateTableProps {
   certificates: CertificateItem[];
+  onRefresh?: () => void;
 }
 
-export function CertificateTable({ certificates: initialCerts }: CertificateTableProps) {
+export function CertificateTable({ certificates: initialCerts, onRefresh }: CertificateTableProps) {
   const [certs, setCerts] = useState<CertificateItem[]>(initialCerts);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { user } = useUser();
+
+  // Keep internal state synchronized with props
+  React.useEffect(() => {
+    setCerts(initialCerts);
+  }, [initialCerts]);
 
   const filteredCerts = certs.filter((c) => {
     const matchesSearch = c.studentName.toLowerCase().includes(search.toLowerCase()) || 
@@ -22,8 +30,30 @@ export function CertificateTable({ certificates: initialCerts }: CertificateTabl
     return matchesSearch && matchesStatus;
   });
 
-  const handleAudit = (id: string, newStatus: "DITERBITKAN" | "DITOLAK") => {
-    setCerts(certs.map((c) => c.id === id ? { ...c, status: newStatus } : c));
+  const handleAudit = async (id: string, newStatus: "DITERBITKAN" | "DITOLAK") => {
+    try {
+      const res = await fetch("/api/admin/certificates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          status: newStatus,
+          adminId: user?.id || "admin-1", // Fallback to seed admin if session loading
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        if (onRefresh) {
+          onRefresh();
+        } else {
+          setCerts(certs.map((c) => c.id === id ? { ...c, status: newStatus } : c));
+        }
+      } else {
+        alert("Error: " + (json.error || "Gagal melakukan audit"));
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
   };
 
   return (

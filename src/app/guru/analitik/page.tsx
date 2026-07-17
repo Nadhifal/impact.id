@@ -1,13 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AnalitikKPIRow } from "./components/section/AnalitikKPIRow";
 import { DaftarSiswaCard } from "./components/section/DaftarSiswaCard";
 import { ProgresDetailPanel } from "./components/section/ProgresDetailPanel";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
+import { useUser } from "@/app/shared/context/AuthContext";
 
 export default function AnalitikProgresPage() {
-  const [selectedId, setSelectedId] = useState("1");
+  const [selectedId, setSelectedId] = useState("");
+  const [students, setStudents] = useState<any[]>([]);
+  const [studentDetail, setStudentDetail] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+
+  const fetchStudents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = user?.id ? `?teacherId=${user.id}` : "";
+      const res = await fetch(`/api/guru/students${params}`);
+      const json = await res.json();
+      if (json.success && json.data.students.length > 0) {
+        setStudents(json.data.students);
+        if (!selectedId) {
+          setSelectedId(json.data.students[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  const fetchDetail = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/guru/students/${id}`);
+      const json = await res.json();
+      if (json.success) {
+        setStudentDetail(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch student detail:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
+  useEffect(() => {
+    if (selectedId) {
+      fetchDetail(selectedId);
+    }
+  }, [selectedId, fetchDetail]);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto w-full relative">
@@ -21,18 +67,25 @@ export default function AnalitikProgresPage() {
         </p>
       </div>
 
-      {/* KPI Row */}
+      {/* KPI Row — still uses static as fallback, data enriched by API */}
       <AnalitikKPIRow />
 
       {/* Main Content: Daftar Siswa + Detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-4">
-          <DaftarSiswaCard selectedId={selectedId} onSelect={setSelectedId} />
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-slate-400">
+          <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+          <span className="text-sm font-semibold">Memuat data siswa...</span>
         </div>
-        <div className="lg:col-span-8">
-          <ProgresDetailPanel selectedId={selectedId} />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-4">
+            <DaftarSiswaCard selectedId={selectedId} onSelect={setSelectedId} students={students} />
+          </div>
+          <div className="lg:col-span-8">
+            <ProgresDetailPanel selectedId={selectedId} studentDetail={studentDetail} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* FAB */}
       <button

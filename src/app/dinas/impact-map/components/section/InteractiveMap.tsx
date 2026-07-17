@@ -5,10 +5,47 @@ import { Plus, Minus, Compass, ExternalLink } from "lucide-react";
 import { Card } from "../ui/Card";
 import { provincesMapData, provinceRankings, ProvinceDetail } from "../../data";
 
-export function InteractiveMap() {
+interface InteractiveMapProps {
+  regions?: any[];
+}
+
+export function InteractiveMap({ regions }: InteractiveMapProps) {
   const [zoom, setZoom] = useState<number>(1);
   const [selectedProvince, setSelectedProvince] = useState<ProvinceDetail | null>(null);
   const [hoveredProvince, setHoveredProvince] = useState<ProvinceDetail | null>(null);
+
+  const displayMapData = regions
+    ? provincesMapData.map((prov) => {
+        const match = regions.find(
+          (r) =>
+            r.province.toLowerCase().includes(prov.name.toLowerCase()) ||
+            prov.name.toLowerCase().includes(r.province.toLowerCase())
+        );
+        if (match) {
+          return {
+            ...prov,
+            projects: match.totalProjects,
+            successRate: Math.round(match.avgHcs),
+            status: match.totalProjects > 2 ? ("High Impact" as const) : ("In Progress" as const),
+          };
+        }
+        return prov;
+      })
+    : provincesMapData;
+
+  const displayRankings = regions && regions.length > 0
+    ? [...regions]
+        .sort((a, b) => b.totalProjects - a.totalProjects)
+        .slice(0, 5)
+        .map((r, idx, arr) => {
+          const maxVal = arr[0]?.totalProjects || 1;
+          return {
+            name: r.province,
+            projectsCount: r.totalProjects,
+            percentage: Math.round((r.totalProjects / maxVal) * 100),
+          };
+        })
+    : provinceRankings;
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 2));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.75));
@@ -87,7 +124,7 @@ export function InteractiveMap() {
             </svg>
 
             {/* Hotspot Markers */}
-            {provincesMapData.map((prov) => {
+            {displayMapData.map((prov) => {
               const isSelected = selectedProvince?.id === prov.id;
               const isHovered = hoveredProvince?.id === prov.id;
               const color = prov.status === "High Impact" ? "bg-[#00473e]" : "bg-[#82ece0]";
@@ -171,7 +208,7 @@ export function InteractiveMap() {
           <p className="text-xs text-slate-500 font-medium mt-0.5">By active project count</p>
 
           <div className="mt-8 space-y-6">
-            {provinceRankings.map((prov, index) => (
+            {displayRankings.map((prov, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                   <span>{prov.name}</span>

@@ -5,7 +5,49 @@ import { ClipboardList, Store, Globe2, BarChart2 } from "lucide-react";
 import { Card } from "../ui/Card";
 import { mapKpiData } from "../../data";
 
-export function MapKPICards() {
+interface MapKPICardsProps {
+  kpis?: {
+    totalProjects: number;
+    totalStudents: number;
+    totalRegions: number;
+    completedProjects: number;
+  };
+}
+
+export function MapKPICards({ kpis }: MapKPICardsProps) {
+  const displayKPIData = kpis
+    ? [
+        {
+          title: "TOTAL PROYEK",
+          value: kpis.totalProjects.toLocaleString("id-ID"),
+          iconName: "clipboard" as const,
+          colorClass: "text-blue-600",
+          iconBgClass: "bg-blue-50",
+        },
+        {
+          title: "SISWA BERKARYA",
+          value: kpis.totalStudents.toLocaleString("id-ID"),
+          iconName: "store" as const,
+          colorClass: "text-indigo-600",
+          iconBgClass: "bg-indigo-50",
+        },
+        {
+          title: "WILAYAH AKTIF",
+          value: kpis.totalRegions.toLocaleString("id-ID"),
+          iconName: "globe" as const,
+          colorClass: "text-amber-600",
+          iconBgClass: "bg-amber-50",
+        },
+        {
+          title: "PROYEK SELESAI",
+          value: kpis.completedProjects.toLocaleString("id-ID"),
+          iconName: "barChart" as const,
+          colorClass: "text-emerald-600",
+          iconBgClass: "bg-emerald-50",
+        },
+      ]
+    : mapKpiData;
+
   const getIcon = (iconName: string, colorClass: string) => {
     switch (iconName) {
       case "clipboard":

@@ -1,8 +1,8 @@
 import React from "react";
 import { FeatureCard } from "../ui/FeatureCard";
-import { features } from "../../data";
+import { features as defaultFeatures } from "../../data";
 
-export function FeaturesSection() {
+export function FeaturesSection({ features = defaultFeatures }: { features?: typeof defaultFeatures }) {
   return (
     <section id="features" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6 md:px-12">

@@ -9,9 +9,22 @@ import type { SiswaBimbingan } from "../../data";
 interface DaftarSiswaCardProps {
   selectedId: string;
   onSelect: (id: string) => void;
+  students?: any[];
 }
 
-export function DaftarSiswaCard({ selectedId, onSelect }: DaftarSiswaCardProps) {
+export function DaftarSiswaCard({ selectedId, onSelect, students }: DaftarSiswaCardProps) {
+  const displayStudents = students
+    ? students.map((s) => ({
+        id: s.id,
+        initials: s.initials,
+        initialsBg: "bg-[#00473e] text-white",
+        name: s.name,
+        hcs: Math.round(s.hcs),
+        trend: "naik" as const,
+        trendLabel: s.completedSubmissions > 0 ? "Aktif" : "Belum mulai",
+      }))
+    : siswaBimbinganList;
+
   return (
     <Card className="p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -22,7 +35,7 @@ export function DaftarSiswaCard({ selectedId, onSelect }: DaftarSiswaCardProps) 
       </div>
 
       <div className="space-y-2">
-        {siswaBimbinganList.map((siswa) => {
+        {displayStudents.map((siswa) => {
           const isActive = siswa.id === selectedId;
           return (
             <button

@@ -43,11 +43,22 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         name,
         role,
-        // Store pending status by prefixing the name with PENDING: marker
-        // We don't have isVerified col yet, so we use an env marker in name
-        // This will be replaced once schema migration is done
       },
     });
+
+    // Create Profile if STUDENT or if school details are provided
+    if (role === "STUDENT" || extraData.school || extraData.province) {
+      await prisma.profile.create({
+        data: {
+          userId: user.id,
+          schoolName: extraData.school || null,
+          province: extraData.province || null,
+          city: extraData.city || null,
+          interests: JSON.stringify(extraData.interests || []),
+          talents: JSON.stringify(extraData.skills ? extraData.skills.split(",") : []),
+        },
+      });
+    }
 
     // For STUDENT: auto-login by issuing JWT
     if (!isPending) {

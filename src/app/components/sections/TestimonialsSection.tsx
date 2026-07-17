@@ -1,9 +1,9 @@
 import React from "react";
-import { testimonial } from "../../data";
+import { testimonial as defaultTestimonial } from "../../data";
 import { TestimonialCard } from "../ui/TestimonialCard";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-export function TestimonialsSection() {
+export function TestimonialsSection({ testimonial = defaultTestimonial }: { testimonial?: typeof defaultTestimonial }) {
   return (
     <section id="testimonials" className="py-20 bg-[#00473e] text-white relative overflow-hidden">
       {/* Decorative elements */}

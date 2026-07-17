@@ -32,10 +32,51 @@ function getIconBg(type: MonitoringKPIItem["type"]) {
   }
 }
 
-export function MonitoringKPICards() {
+interface MonitoringKPICardsProps {
+  kpis?: {
+    totalSchools: number;
+    totalStudents: number;
+    totalTeachers: number;
+    globalAvgHcs: number;
+  };
+}
+
+export function MonitoringKPICards({ kpis }: MonitoringKPICardsProps) {
+  const displayKPIData = kpis
+    ? [
+        {
+          title: "Sekolah Aktif",
+          value: `${kpis.totalSchools} Sekolah`,
+          sub: "Terhubung di sistem",
+          subIsPositive: true,
+          type: "running" as const,
+        },
+        {
+          title: "Skor SDM Global",
+          value: `${kpis.globalAvgHcs.toFixed(1)}%`,
+          sub: "Rata-rata HCS Nasional",
+          type: "target" as const,
+        },
+        {
+          title: "Siswa Aktif",
+          value: kpis.totalStudents.toLocaleString("id-ID"),
+          sub: "Talenta terdaftar",
+          subIsPositive: true,
+          type: "attention" as const, // displays as important
+        },
+        {
+          title: "Guru Pembimbing",
+          value: `${kpis.totalTeachers} Guru`,
+          sub: "Fasilitator aktif",
+          subIsPositive: true,
+          type: "budget" as const,
+        },
+      ]
+    : monitoringKPIData;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-      {monitoringKPIData.map((kpi, idx) => (
+      {displayKPIData.map((kpi, idx) => (
         <Card
           key={idx}
           className="flex flex-col gap-4 hover:shadow-md transition-shadow"
