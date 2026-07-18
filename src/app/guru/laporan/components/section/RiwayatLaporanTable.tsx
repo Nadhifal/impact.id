@@ -1,12 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Download, ChevronRight } from "lucide-react";
 import { Card } from "../ui/Card";
-import { riwayatLaporanData } from "../../data";
 import type { LaporanFormat } from "../../data";
 
 const ITEMS_PER_PAGE = 3;
+
+interface RiwayatItem {
+  id: string;
+  format: LaporanFormat;
+  name: string;
+  periode: string;
+  createdAt: string;
+}
 
 function FormatIcon({ format }: { format: LaporanFormat }) {
   return (
@@ -22,14 +29,14 @@ function FormatIcon({ format }: { format: LaporanFormat }) {
   );
 }
 
-export function RiwayatLaporanTable() {
+export function RiwayatLaporanTable({ riwayat }: { riwayat: RiwayatItem[] }) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const filtered = riwayatLaporanData.filter((r) =>
+  const filtered = riwayat.filter((r) =>
     r.name.toLowerCase().includes(query.toLowerCase())
   );
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
@@ -86,37 +93,46 @@ export function RiwayatLaporanTable() {
                 </td>
               </tr>
             ))}
+            {paginated.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center text-sm font-medium text-slate-400">
+                  Belum ada riwayat laporan untuk siswa ini.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-          <p className="text-xs font-medium text-slate-400">
-            Menampilkan {paginated.length} dari {filtered.length} laporan
-          </p>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+            <p className="text-xs font-medium text-slate-400">
+              Menampilkan {paginated.length} dari {filtered.length} laporan
+            </p>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    page === p
+                      ? "bg-[#00473e] text-white"
+                      : "text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
               <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                  page === p
-                    ? "bg-[#00473e] text-white"
-                    : "text-slate-500 hover:bg-slate-100"
-                }`}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
               >
-                {p}
+                <ChevronRight className="w-4 h-4" />
               </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            </div>
           </div>
-        </div>
+        )}
       </Card>
     </div>
   );

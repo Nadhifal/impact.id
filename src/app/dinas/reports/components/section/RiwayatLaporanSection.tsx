@@ -4,9 +4,11 @@ import React from "react";
 import { Clock, Download, ChevronRight } from "lucide-react";
 import { Card } from "../ui/Card";
 import { FormatBadge } from "../ui/FormatBadge";
-import { reportHistoryData } from "../../data";
+import type { ReportHistoryItem } from "../../data";
 
-export function RiwayatLaporanSection() {
+export function RiwayatLaporanSection({ reports }: { reports?: ReportHistoryItem[] }) {
+  const displayReports = reports ?? [];
+
   return (
     <Card className="p-0 overflow-hidden">
       {/* Header */}
@@ -44,7 +46,7 @@ export function RiwayatLaporanSection() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {reportHistoryData.map((report) => (
+            {displayReports.map((report) => (
               <tr
                 key={report.id}
                 className="hover:bg-slate-50/50 transition-colors group"
@@ -65,7 +67,7 @@ export function RiwayatLaporanSection() {
                 </td>
                 <td className="px-6 py-4 text-center">
                   <button
-                    className="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                     className="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                     aria-label="Unduh laporan"
                   >
                     <Download className="w-4 h-4" />
@@ -73,6 +75,13 @@ export function RiwayatLaporanSection() {
                 </td>
               </tr>
             ))}
+            {displayReports.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-sm font-semibold text-slate-400">
+                  Belum ada riwayat laporan yang dihasilkan dari database.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -180,3 +180,28 @@ export async function sendMentorMessage(
   });
   return result.data ?? null;
 }
+
+// ─── Guru / Dinas Shared API Helpers ──────────────────────────────────────────
+
+export async function fetchGuruVerifikasiStats(): Promise<any> {
+  const result = await apiFetch("/api/guru/verifikasi");
+  return result.data ?? null;
+}
+
+export async function fetchDinasAnalytics(): Promise<any> {
+  const result = await apiFetch("/api/dinas/analytics");
+  return result.data ?? null;
+}
+
+export async function fetchDinasMonitoring(wilayah?: string): Promise<any> {
+  const qs = wilayah && wilayah !== "all" ? `?wilayah=${wilayah}` : "";
+  const result = await apiFetch(`/api/dinas/monitoring${qs}`);
+  return result.data ?? null;
+}
+
+export async function fetchGuruLaporan(studentId?: string): Promise<any> {
+  const qs = studentId ? `?studentId=${studentId}` : "";
+  const result = await apiFetch(`/api/guru/laporan${qs}`);
+  return result.data ?? null;
+}
+

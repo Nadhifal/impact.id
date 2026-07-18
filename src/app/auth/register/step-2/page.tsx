@@ -10,6 +10,8 @@ import { Select } from "@/app/shared/components/ui/select";
 import { Button } from "@/app/shared/components/ui/button";
 import { ProgressIndicator } from "@/app/shared/components/ui/progress-indicator";
 
+import { INDONESIA_PROVINCES } from "../../provinces";
+
 export default function RegisterStep2Page() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -36,11 +38,8 @@ export default function RegisterStep2Page() {
   };
 
   const provinceOptions = [
-    { value: "", label: "Pilih" },
-    { value: "jawa-timur", label: "Jawa Timur" },
-    { value: "jawa-tengah", label: "Jawa Tengah" },
-    { value: "jawa-barat", label: "Jawa Barat" },
-    { value: "dki-jakarta", label: "DKI Jakarta" },
+    { value: "", label: "Pilih Provinsi" },
+    ...INDONESIA_PROVINCES,
   ];
 
   return (

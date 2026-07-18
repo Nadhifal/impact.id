@@ -9,13 +9,26 @@ export async function GET(request: Request) {
 
     let whereClause: any = {};
     if (teacherId) {
-      // Find students whose submissions were verified by this teacher
-      const verifications = await prisma.verification.findMany({
-        where: { teacherId },
-        select: { submission: { select: { userId: true } } },
+      // Find the teacher's schoolName from their profile
+      const teacherProfile = await prisma.profile.findUnique({
+        where: { userId: teacherId },
+        select: { schoolName: true },
       });
-      const studentIds = [...new Set(verifications.map((v) => v.submission.userId))];
-      whereClause = { id: { in: studentIds } };
+      if (teacherProfile?.schoolName) {
+        whereClause = {
+          profile: {
+            schoolName: teacherProfile.schoolName,
+          },
+        };
+      } else {
+        // Fallback: if teacher has no profile or schoolName, find by verification
+        const verifications = await prisma.verification.findMany({
+          where: { teacherId },
+          select: { submission: { select: { userId: true } } },
+        });
+        const studentIds = [...new Set(verifications.map((v) => v.submission.userId))];
+        whereClause = { id: { in: studentIds } };
+      }
     }
 
     // Default: get all students

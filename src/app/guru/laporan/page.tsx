@@ -10,6 +10,7 @@ import { useUser } from "@/app/shared/context/AuthContext";
 export default function LaporanCapaianPage() {
   const [selectedSiswaId, setSelectedSiswaId] = useState("1");
   const [siswaOptions, setSiswaOptions] = useState<SiswaOption[]>([]);
+  const [laporanData, setLaporanData] = useState<any>(null);
   const { user } = useUser();
 
   const fetchStudents = useCallback(async () => {
@@ -30,11 +31,29 @@ export default function LaporanCapaianPage() {
     }
   }, [user?.id]);
 
+  const fetchLaporanData = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/guru/laporan`);
+      const json = await res.json();
+      if (json.success) {
+        setLaporanData(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch laporan data:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStudents();
-  }, [fetchStudents]);
+    fetchLaporanData();
+  }, [fetchStudents, fetchLaporanData]);
 
   const selectedSiswa = siswaOptions.find((s) => s.id === selectedSiswaId) ?? siswaOptions[0];
+
+  // Filter current student's capaian summary from API
+  const studentCapaian = laporanData?.summaries?.find((s: any) => s.id === selectedSiswaId)?.capaian;
+  // Filter current student's riwayat from API
+  const studentRiwayat = laporanData?.riwayat?.filter((r: any) => r.studentId === selectedSiswaId) ?? [];
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto w-full">
@@ -53,11 +72,18 @@ export default function LaporanCapaianPage() {
 
       {/* Ringkasan Capaian */}
       {selectedSiswa && (
-        <RingkasanCapaianSection siswaName={selectedSiswa.name} />
+        <RingkasanCapaianSection
+          siswaName={selectedSiswa.name}
+          capaian={studentCapaian}
+        />
       )}
 
       {/* Riwayat Laporan */}
-      <RiwayatLaporanTable />
+      {selectedSiswa && (
+        <RiwayatLaporanTable
+          riwayat={studentRiwayat}
+        />
+      )}
     </div>
   );
 }

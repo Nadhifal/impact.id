@@ -58,6 +58,7 @@ async function main() {
       password: teacherPassword,
       name: 'Rani Kusumawati',
       role: 'TEACHER',
+      profile: { create: { schoolName: 'SMA Negeri 1 Serang', province: 'Banten', city: 'Kota Serang', interests: '[]', talents: '[]' } },
     },
   });
   const teacher2 = await prisma.user.create({
@@ -67,6 +68,7 @@ async function main() {
       password: teacherPassword,
       name: 'Budi Santoso',
       role: 'TEACHER',
+      profile: { create: { schoolName: 'SMKN 1 Cilegon', province: 'Banten', city: 'Kota Cilegon', interests: '[]', talents: '[]' } },
     },
   });
   console.log(`✅ 2 guru dibuat (password: Guru@impact2026)`);

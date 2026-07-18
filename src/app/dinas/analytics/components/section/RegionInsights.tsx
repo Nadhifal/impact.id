@@ -2,17 +2,28 @@
 
 import React from "react";
 import { Lightbulb, Info } from "lucide-react";
-import { regionalInsights } from "../../data";
 
-export function RegionInsights() {
+interface RegionalInsight {
+  type: "KEUNGGULAN" | "REKOMENDASI";
+  title: string;
+  description: string;
+}
+
+interface RegionInsightsProps {
+  insights?: RegionalInsight[];
+}
+
+export function RegionInsights({ insights }: RegionInsightsProps) {
+  const data = insights ?? [];
+
   return (
     <div className="bg-[#003830] text-white rounded-2xl p-6 h-[400px] flex flex-col justify-between shadow-xs">
       <div className="space-y-5">
         <h3 className="text-lg font-bold">Insight Wilayah</h3>
-        
+
         {/* Insight items */}
         <div className="space-y-4">
-          {regionalInsights.map((insight, idx) => (
+          {data.map((insight, idx) => (
             <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 flex gap-3">
               <div className="shrink-0 mt-0.5">
                 {insight.type === "KEUNGGULAN" ? (
@@ -31,6 +42,11 @@ export function RegionInsights() {
               </div>
             </div>
           ))}
+          {data.length === 0 && (
+            <p className="text-xs text-white/50 text-center py-8">
+              Tidak ada data insight saat ini.
+            </p>
+          )}
         </div>
       </div>
 

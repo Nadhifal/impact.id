@@ -42,6 +42,7 @@ export const filterLevels: FilterOption[] = [
   { value: "smp", label: "Sekolah Menengah Pertama (SMP)" },
   { value: "sma", label: "Sekolah Menengah Atas (SMA)" },
   { value: "smk", label: "Sekolah Menengah Kejuruan (SMK)" },
+  { value: "pt",  label: "Perguruan Tinggi (PT)" },
 ];
 
 export const filterSemesters: FilterOption[] = [

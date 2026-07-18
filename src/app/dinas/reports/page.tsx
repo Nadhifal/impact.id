@@ -1,11 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BuatLaporanSection } from "./components/section/BuatLaporanSection";
 import { RiwayatLaporanSection } from "./components/section/RiwayatLaporanSection";
 import { APIAccessSection } from "./components/section/APIAccessSection";
 
 export default function LaporanEksporPage() {
+  const [reports, setReports] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/dinas/reports")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) setReports(json.data);
+      })
+      .catch((err) => console.error("Failed to load reports:", err));
+  }, []);
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Title Header */}
@@ -22,7 +33,7 @@ export default function LaporanEksporPage() {
       <BuatLaporanSection />
 
       {/* Riwayat Laporan */}
-      <RiwayatLaporanSection />
+      <RiwayatLaporanSection reports={reports} />
 
       {/* API Access */}
       <APIAccessSection />

@@ -8,21 +8,15 @@ import { SchoolProgramTable } from "./components/section/SchoolProgramTable";
 import { RefreshCw } from "lucide-react";
 
 export default function MonitoringProgramPage() {
-  const [schoolData, setSchoolData] = useState<any>(null);
-  const [impactData, setImpactData] = useState<any>(null);
+  const [monitoringData, setMonitoringData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [resSchools, resImpact] = await Promise.all([
-        fetch("/api/dinas/schools"),
-        fetch("/api/dinas/impact-map"),
-      ]);
-      const jsonSchools = await resSchools.json();
-      const jsonImpact = await resImpact.json();
-      if (jsonSchools.success) setSchoolData(jsonSchools.data);
-      if (jsonImpact.success) setImpactData(jsonImpact.data);
+      const res = await fetch("/api/dinas/monitoring");
+      const json = await res.json();
+      if (json.success) setMonitoringData(json.data);
     } catch (err) {
       console.error("Failed to fetch monitoring data:", err);
     } finally {
@@ -34,6 +28,16 @@ export default function MonitoringProgramPage() {
     fetchData();
   }, [fetchData]);
 
+  // Aggregate global stats from schoolProgramData for kpis
+  const kpis = monitoringData ? {
+    totalSchools: monitoringData.schoolProgramData.length,
+    totalStudents: monitoringData.schoolProgramData.reduce((acc: number, s: any) => acc + s.students, 0),
+    totalTeachers: Math.round(monitoringData.schoolProgramData.length * 1.5), // Estimate teacher count
+    globalAvgHcs: monitoringData.schoolProgramData.length > 0
+      ? monitoringData.schoolProgramData.reduce((acc: number, s: any) => acc + s.avgHcs, 0) / monitoringData.schoolProgramData.length
+      : 0
+  } : undefined;
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Title Header */}
@@ -44,9 +48,9 @@ export default function MonitoringProgramPage() {
           </h2>
           <p className="text-sm font-medium text-slate-500 mt-1">
             Ringkasan implementasi kurikulum merdeka dan bantuan operasional daerah.
-            {schoolData && (
+            {kpis && (
               <span className="ml-2 text-[#00473e] font-bold">
-                ({schoolData.kpis.totalSchools} sekolah, {schoolData.kpis.totalStudents} siswa terdaftar)
+                ({kpis.totalSchools} sekolah, {kpis.totalStudents} siswa terdaftar)
               </span>
             )}
           </p>
@@ -64,14 +68,14 @@ export default function MonitoringProgramPage() {
         </div>
       </div>
 
-      {/* KPI Cards — still uses local data as structure, overlaid with API totals */}
-      <MonitoringKPICards kpis={schoolData?.kpis} />
+      {/* KPI Cards */}
+      <MonitoringKPICards kpis={kpis} />
 
       {/* Wilayah Progress + AI Card */}
-      <WilayahProgressCard regions={impactData?.regions} />
+      <WilayahProgressCard regions={monitoringData?.wilayahProgressData} />
 
       {/* School Program Table */}
-      <SchoolProgramTable schools={schoolData?.schools} />
+      <SchoolProgramTable schools={monitoringData?.schoolProgramData} />
     </div>
   );
 }

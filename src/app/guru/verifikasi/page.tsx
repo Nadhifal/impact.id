@@ -4,16 +4,34 @@ import React, { useState } from "react";
 import { SubmissionList } from "./components/section/SubmissionList";
 import { AssessmentPanel } from "./components/section/AssessmentPanel";
 import { StatsRow } from "./components/section/StatsRow";
-import { dummySubmissions, dummyStats, Submission } from "./data";
+import { Submission } from "./data";
 import { useUser } from "@/app/shared/context/AuthContext";
+import type { Stats } from "./data";
 
 export default function VerificationPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [stats, setStats] = useState(dummyStats);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/guru/verifikasi");
+      const json = await res.json();
+      if (json.success) {
+        setStats({
+          averageHcs: json.data.averageHcs,
+          hcsChange: json.data.hcsChange,
+          challengesCompleted: json.data.challengesCompleted,
+          challengesTarget: json.data.challengesTarget,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch verifikasi stats:", err);
+    }
+  };
 
   const fetchSubmissions = async () => {
     try {
@@ -60,6 +78,7 @@ export default function VerificationPage() {
 
   React.useEffect(() => {
     fetchSubmissions();
+    fetchStats();
   }, []);
 
   const activeSubmission = submissions.find((sub) => sub.id === selectedId);
@@ -206,7 +225,7 @@ export default function VerificationPage() {
       </div>
 
       {/* Bottom Statistics Section */}
-      <StatsRow stats={stats} />
+      {stats && <StatsRow stats={stats} />}
     </div>
   );
 }

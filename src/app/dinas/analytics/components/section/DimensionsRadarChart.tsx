@@ -3,9 +3,20 @@
 import React from "react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
 import { Card } from "../ui/Card";
-import { dimensionsRadarData } from "../../data";
 
-export function DimensionsRadarChart() {
+interface RadarItem {
+  subject: string;
+  "RATA-RATA": number;
+  "BENCHMARK (85)": number;
+}
+
+interface DimensionsRadarChartProps {
+  data?: RadarItem[];
+}
+
+export function DimensionsRadarChart({ data }: DimensionsRadarChartProps) {
+  const chartData = data ?? [];
+
   return (
     <Card className="flex flex-col h-[480px] border-slate-200">
       {/* Title Header */}
@@ -19,34 +30,34 @@ export function DimensionsRadarChart() {
       {/* Radar Chart */}
       <div className="flex-1 w-full h-full min-h-0">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="45%" outerRadius="70%" data={dimensionsRadarData}>
+          <RadarChart cx="50%" cy="45%" outerRadius="70%" data={chartData}>
             <PolarGrid stroke="#e2e8f0" />
-            <PolarAngleAxis 
-              dataKey="subject" 
-              tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }} 
+            <PolarAngleAxis
+              dataKey="subject"
+              tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
             />
-            <PolarRadiusAxis 
-              angle={30} 
-              domain={[0, 100]} 
-              tick={{ fill: "#94a3b8", fontSize: 9 }} 
+            <PolarRadiusAxis
+              angle={30}
+              domain={[0, 100]}
+              tick={{ fill: "#94a3b8", fontSize: 9 }}
             />
             <Radar
-              name="KOTA BANDUNG"
-              dataKey="KOTA BANDUNG"
+              name="RATA-RATA"
+              dataKey="RATA-RATA"
               stroke="#00473e"
               fill="#00473e"
               fillOpacity={0.2}
             />
             <Radar
-              name="RATA-RATA PROV"
-              dataKey="RATA-RATA PROV"
+              name="BENCHMARK (85)"
+              dataKey="BENCHMARK (85)"
               stroke="#82ece0"
               fill="#82ece0"
               fillOpacity={0.3}
             />
-            <Legend 
-              verticalAlign="bottom" 
-              align="center" 
+            <Legend
+              verticalAlign="bottom"
+              align="center"
               iconSize={8}
               iconType="circle"
               wrapperStyle={{ fontSize: 10, fontWeight: 700, fill: "#475569" }}
