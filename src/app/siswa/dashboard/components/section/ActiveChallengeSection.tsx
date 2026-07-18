@@ -66,7 +66,7 @@ export function ActiveChallengeSection({ challenge }: ActiveChallengeSectionProp
         </div>
 
         <Button className="w-full md:w-auto bg-[#00473e] hover:bg-[#00362f] text-white py-3 px-6 rounded-xl flex items-center gap-2 text-sm font-semibold cursor-pointer">
-          Continue Task
+          Lanjutkan Challenge
           <ArrowRight className="w-4 h-4" />
         </Button>
       </Card>

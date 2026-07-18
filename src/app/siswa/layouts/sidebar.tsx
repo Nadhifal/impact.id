@@ -39,7 +39,7 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
           localStorage.setItem("impact_avatar", data.avatarUrl);
         }
       })
-      .catch(() => {/* ignore */});
+      .catch(() => {/* ignore */ });
   }, []);
 
   const displayName = user?.name ?? "Siswa";
@@ -85,11 +85,10 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
               return (
                 <Link key={item.name} href={item.href}>
                   <span
-                    className={`flex items-center gap-3.5 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
-                      isActive
+                    className={`flex items-center gap-3.5 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${isActive
                         ? "bg-zinc-50 text-[#00473e] border-l-4 border-[#00473e]"
                         : "text-zinc-500 hover:text-slate-800 hover:bg-zinc-50/50"
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? "text-[#00473e]" : "text-zinc-400"}`} />
                     {item.name}
@@ -138,7 +137,7 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
             Logout
           </button>
           <div className="text-[10px] font-bold text-zinc-400 px-4 flex justify-between items-center">
-            <span>© 2024 IMPACT.ID</span>
+            <span>© 2026 IMPACT.ID</span>
             <div className="flex gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#00473e]" />
@@ -149,9 +148,8 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
 
       {/* Mobile Drawer Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[300px] bg-white border-r border-zinc-100 p-6 flex flex-col justify-between transition-transform duration-300 md:hidden ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-[300px] bg-white border-r border-zinc-100 p-6 flex flex-col justify-between transition-transform duration-300 md:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div>
           {/* Close Button */}
@@ -200,11 +198,10 @@ export function Sidebar({ onClose, isOpen = false }: SidebarProps) {
               return (
                 <Link key={item.name} href={item.href} onClick={onClose}>
                   <span
-                    className={`flex items-center gap-3.5 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
-                      isActive
+                    className={`flex items-center gap-3.5 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${isActive
                         ? "bg-zinc-50 text-[#00473e] border-l-4 border-[#00473e]"
                         : "text-zinc-500 hover:text-slate-800 hover:bg-zinc-50/50"
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? "text-[#00473e]" : "text-zinc-400"}`} />
                     {item.name}

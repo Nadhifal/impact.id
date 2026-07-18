@@ -11,7 +11,7 @@ export const CompletedChallenges: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <h3 className="text-sm font-bold text-slate-800">
-          Completed Challenges
+          Challenges diselesaikan
         </h3>
         <button className="p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer">
           <SlidersHorizontal className="w-4 h-4" />
@@ -45,11 +45,10 @@ export const CompletedChallenges: React.FC = () => {
                     {item.date}
                   </span>
                   <span
-                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                      item.badgeType === "xp"
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${item.badgeType === "xp"
                         ? "bg-emerald-50 text-emerald-700"
                         : "bg-slate-100 text-slate-500"
-                    }`}
+                      }`}
                   >
                     {item.badgeText}
                   </span>

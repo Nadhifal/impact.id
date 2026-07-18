@@ -59,10 +59,10 @@ export function SiswaChallengesClient({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-100 pb-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Ongoing Challenges
+            Challenges
           </h1>
           <p className="text-zinc-500 text-sm">
-            Scale your impact by solving real-world problems.
+            Perluas dampak Anda dengan memecahkan masalah dunia nyata.
           </p>
         </div>
 
@@ -72,11 +72,10 @@ export function SiswaChallengesClient({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === tab
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-zinc-500 hover:text-slate-800"
-              }`}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === tab
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-zinc-500 hover:text-slate-800"
+                }`}
             >
               {tab}
             </button>
