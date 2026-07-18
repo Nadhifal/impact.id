@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/app/shared/components/ui/button";
 import { Card } from "@/app/shared/components/ui/card";
 import { StatCard } from "../ui/StatCard";
@@ -40,10 +41,12 @@ export function HeroSection({ stats = defaultStats }: { stats?: typeof defaultSt
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-6 pt-2 w-full">
-            <Button variant="primary" size="lg" className="group w-full sm:w-auto justify-center bg-[#00473e] text-white">
-              Mulai Sekarang
-              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <Link href="/auth/login">
+              <Button variant="primary" size="lg" className="group w-full sm:w-auto justify-center bg-[#00473e] text-white">
+                Mulai Sekarang
+                <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
 
             {/* Members Avatars (hidden on mobile, flex on desktop/tablet) */}
             <div className="hidden md:flex items-center gap-3 bg-[#e6f4f1]/50 dark:bg-[#002b25]/10 px-4 py-2 rounded-full border border-slate-100">
