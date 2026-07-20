@@ -46,8 +46,8 @@ export const CompletedChallenges: React.FC = () => {
                   </span>
                   <span
                     className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${item.badgeType === "xp"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-500"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-slate-100 text-slate-500"
                       }`}
                   >
                     {item.badgeText}

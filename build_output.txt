@@ -1,0 +1,41 @@
+
+> frontend@0.1.0 build
+> prisma migrate deploy && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-holy-wind-azdrzu8q-pooler.c-3.ap-southeast-1.aws.neon.tech"
+
+1 migration found in prisma/migrations
+
+
+No pending migrations to apply.
+┌─────────────────────────────────────────────────────────┐
+│  Update available 6.0.0 -> 7.8.0                        │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+▲ Next.js 16.2.10 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.4s
+  Running TypeScript ...
+Failed to type check.
+
+./src/app/siswa/dashboard/page.tsx:33:29
+Type error: Property 'get' does not exist on type 'Promise<ReadonlyRequestCookies>'.
+
+  [90m31 |[0m [36masync[0m [36mfunction[0m getDashboardData(): [33mPromise[0m<[33mDashboardData[0m> {
+  [90m32 |[0m   [36mconst[0m cookieStore = cookies();
+[31m[1m>[0m [90m33 |[0m   [36mconst[0m token = cookieStore.get([32m"impact_token"[0m)?.value;
+  [90m   |[0m                             [31m[1m^[0m
+  [90m34 |[0m
+  [90m35 |[0m   [36mif[0m (!token) {
+  [90m36 |[0m     redirect([32m"/auth/login"[0m);
+Next.js build worker exited with code: 1 and signal: null

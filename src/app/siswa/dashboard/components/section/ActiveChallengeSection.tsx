@@ -19,12 +19,17 @@ interface ActiveChallengeSectionProps {
   };
 }
 
-export function ActiveChallengeSection({ challenge }: ActiveChallengeSectionProps) {
+export function ActiveChallengeSection({
+  challenge
+}: ActiveChallengeSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-slate-900">Active Challenge</h2>
-        <Link href="/siswa/challenges" className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+        <Link
+          href="/siswa/challenges"
+          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+        >
           Lihat Semua
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -38,7 +43,6 @@ export function ActiveChallengeSection({ challenge }: ActiveChallengeSectionProp
               alt={challenge.title}
               fill
               className="object-cover"
-              unoptimized
             />
           </div>
           <div className="space-y-2 w-full">
@@ -50,7 +54,9 @@ export function ActiveChallengeSection({ challenge }: ActiveChallengeSectionProp
                 • Deadline: {challenge.deadline}
               </span>
             </div>
-            <h3 className="text-base font-bold text-slate-900">{challenge.title}</h3>
+            <h3 className="text-base font-bold text-slate-900">
+              {challenge.title}
+            </h3>
             <div className="flex items-center gap-4 w-full max-w-[400px]">
               <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden flex-1">
                 <div
@@ -59,7 +65,8 @@ export function ActiveChallengeSection({ challenge }: ActiveChallengeSectionProp
                 />
               </div>
               <span className="text-[10px] text-zinc-500 font-bold shrink-0">
-                {challenge.progressPercent}% Selesai ({challenge.currentStep} dari {challenge.totalSteps} Tahapan)
+                {challenge.progressPercent}% Selesai ({challenge.currentStep}{" "}
+                dari {challenge.totalSteps} Tahapan)
               </span>
             </div>
           </div>

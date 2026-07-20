@@ -1,6 +1,3 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
 import { Navbar } from "./components/layouts/navbar";
 import { HeroSection } from "./components/sections/HeroSection";
 import { FeaturesSection } from "./components/sections/FeaturesSection";
@@ -8,24 +5,27 @@ import { ProcessSection } from "./components/sections/ProcessSection";
 import { TestimonialsSection } from "./components/sections/TestimonialsSection";
 import { VerificationSection } from "./components/sections/VerificationSection";
 import { GlobalFooter } from "@/app/shared/components/layouts/Footer";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
-  const [content, setContent] = useState<any>(null);
+export const revalidate = 60;
 
-  useEffect(() => {
-    async function loadLandingPage() {
-      try {
-        const res = await fetch("/api/admin/landing-page");
-        const json = await res.json();
-        if (json.success) {
-          setContent(json.data);
-        }
-      } catch (err) {
-        console.error("Failed to load landing page content:", err);
-      }
+async function getLandingPageContent() {
+  const contents = await prisma.landingPageContent.findMany();
+  const result: Record<string, any> = {};
+
+  for (const content of contents) {
+    try {
+      result[content.key] = JSON.parse(content.value);
+    } catch {
+      result[content.key] = content.value;
     }
-    loadLandingPage();
-  }, []);
+  }
+
+  return result;
+}
+
+export default async function Home() {
+  const content = await getLandingPageContent();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-[#00473e]/10 selection:text-[#00473e]">

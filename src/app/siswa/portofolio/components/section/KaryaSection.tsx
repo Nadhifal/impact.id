@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronRight, Brain, Sparkles, Check, Award, Calendar, Landmark, FileText } from "lucide-react";
+import {
+  ChevronRight,
+  Brain,
+  Sparkles,
+  Check,
+  Award,
+  Calendar,
+  Landmark,
+  FileText
+} from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/app/shared/components/ui/card";
 import { PortfolioProjectCard } from "../ui/PortfolioProjectCard";
@@ -33,8 +42,14 @@ interface KaryaSectionProps {
   credentials: CredentialItem[];
 }
 
-export function KaryaSection({ projects, recommendations, credentials }: KaryaSectionProps) {
+export function KaryaSection({
+  projects,
+  recommendations,
+  credentials
+}: KaryaSectionProps) {
   const [activeTab, setActiveTab] = useState<"karya" | "sertifikat">("karya");
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const displayedProjects = showAllProjects ? projects : projects.slice(0, 3);
 
   return (
     <div className="lg:col-span-8 space-y-6">
@@ -66,21 +81,43 @@ export function KaryaSection({ projects, recommendations, credentials }: KaryaSe
           </button>
         </div>
 
-        {activeTab === "karya" && (
-          <span className="text-xs font-bold text-[#00473e] hover:underline cursor-pointer flex items-center gap-0.5 shrink-0 pb-3">
-            Lihat Semua
+        {activeTab === "karya" && projects.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAllProjects((value) => !value)}
+            className="text-xs font-bold text-[#00473e] hover:underline flex items-center gap-0.5 shrink-0 pb-3"
+          >
+            {showAllProjects ? "Tutup" : `Lihat Semua (${projects.length})`}
             <ChevronRight className="w-4 h-4" />
-          </span>
+          </button>
         )}
       </div>
 
       {/* Tab: Projects Grid */}
       {activeTab === "karya" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {projects.map((project, idx) => (
-            <PortfolioProjectCard key={idx} project={project} />
-          ))}
-        </div>
+        <>
+          {projects.length === 0 ? (
+            <div className="rounded-3xl bg-white border border-zinc-100 shadow-sm p-8 text-center text-slate-500 font-semibold text-sm">
+              Belum ada karya dari hasil challenge atau portofolio.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {displayedProjects.map((project, idx) => (
+                  <PortfolioProjectCard key={idx} project={project} />
+                ))}
+              </div>
+              {!showAllProjects &&
+                projects.length > displayedProjects.length && (
+                  <div className="text-xs text-slate-500">
+                    Menampilkan {displayedProjects.length} dari{" "}
+                    {projects.length} karya. Klik Lihat Semua untuk melihat
+                    seluruh karya.
+                  </div>
+                )}
+            </>
+          )}
+        </>
       )}
 
       {/* Tab: Certificates Grid */}
@@ -123,7 +160,11 @@ export function KaryaSection({ projects, recommendations, credentials }: KaryaSe
 
                 {/* CTA Button — links to detail page */}
                 <Link
-                  href={cred.id ? `/siswa/portofolio/detail-sertifikat?id=${cred.id}` : "/siswa/portofolio/detail-sertifikat"}
+                  href={
+                    cred.id
+                      ? `/siswa/portofolio/detail-sertifikat?id=${cred.id}`
+                      : "/siswa/portofolio/detail-sertifikat"
+                  }
                   className="mt-5 w-full py-2.5 bg-[#00473e] hover:bg-[#003830] text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5" />
@@ -133,7 +174,8 @@ export function KaryaSection({ projects, recommendations, credentials }: KaryaSe
             ))
           ) : (
             <div className="sm:col-span-2 bg-white rounded-2xl border border-slate-100 p-12 text-center text-slate-400 font-semibold text-xs">
-              Belum ada sertifikat terverifikasi di database. Selesaikan challenge dan tunggu guru menyetujui!
+              Belum ada sertifikat terverifikasi di database. Selesaikan
+              challenge dan tunggu guru menyetujui!
             </div>
           )}
         </div>
@@ -150,9 +192,13 @@ export function KaryaSection({ projects, recommendations, credentials }: KaryaSe
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-2xl font-extrabold text-white leading-tight">AI Career Strategist</h3>
+            <h3 className="text-2xl font-extrabold text-white leading-tight">
+              AI Career Strategist
+            </h3>
             <p className="text-xs text-zinc-200 font-medium leading-relaxed max-w-md">
-              Dapatkan rekomendasi jalur karir dan sertifikasi berdasarkan rekam jejak karyamu saat ini untuk memaksimalkan potensimu di industri masa depan.
+              Dapatkan rekomendasi jalur karir dan sertifikasi berdasarkan rekam
+              jejak karyamu saat ini untuk memaksimalkan potensimu di industri
+              masa depan.
             </p>
           </div>
 
@@ -163,10 +209,15 @@ export function KaryaSection({ projects, recommendations, credentials }: KaryaSe
         </div>
 
         <div className="w-full md:w-[260px] p-5 bg-white/5 border border-white/10 rounded-2xl space-y-4 shrink-0">
-          <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Rekomendasi Teratas:</h4>
+          <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+            Rekomendasi Teratas:
+          </h4>
           <ul className="space-y-2.5">
             {recommendations.map((rec, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-100 font-semibold">
+              <li
+                key={idx}
+                className="flex items-start gap-2.5 text-xs text-slate-100 font-semibold"
+              >
                 <span className="p-0.5 rounded-full bg-emerald-500/25 text-emerald-400 shrink-0 mt-0.5">
                   <Check className="w-3 h-3" />
                 </span>

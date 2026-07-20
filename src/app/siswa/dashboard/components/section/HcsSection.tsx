@@ -8,22 +8,21 @@ import { HcsRadarChart } from "../ui/HcsRadarChart";
 interface HcsSectionProps {
   scores: { SI: number; LD: number; IN: number; RL: number };
   overallScore: number;
-  isMounted: boolean;
 }
 
-export function HcsSection({ scores, overallScore, isMounted }: HcsSectionProps) {
+export function HcsSection({ scores, overallScore }: HcsSectionProps) {
   const hcsStats = [
     { label: "SOCIAL IMPACT", value: `${scores.SI}%` },
     { label: "LEADERSHIP", value: `${scores.LD}%` },
     { label: "INNOVATION", value: `${scores.IN}%` },
-    { label: "RELIABILITY", value: `${scores.RL}%` },
+    { label: "RELIABILITY", value: `${scores.RL}%` }
   ];
 
   const chartData = [
     { subject: "Social Impact", A: scores.SI },
     { subject: "Leadership", A: scores.LD },
     { subject: "Reliability", A: scores.RL },
-    { subject: "Innovation", A: scores.IN },
+    { subject: "Innovation", A: scores.IN }
   ];
 
   return (
@@ -54,14 +53,16 @@ export function HcsSection({ scores, overallScore, isMounted }: HcsSectionProps)
               <span className="text-[10px] font-bold text-zinc-400 tracking-wider">
                 {stat.label}
               </span>
-              <span className="text-xl font-black text-slate-900 mt-2">{stat.value}</span>
+              <span className="text-xl font-black text-slate-900 mt-2">
+                {stat.value}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Radar Chart wrapper */}
-      {isMounted && <HcsRadarChart data={chartData} />}
+      <HcsRadarChart data={chartData} />
     </Card>
   );
 }

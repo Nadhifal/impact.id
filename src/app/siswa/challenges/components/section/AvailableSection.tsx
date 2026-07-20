@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Clock, Zap, ChevronDown } from "lucide-react";
@@ -34,11 +34,25 @@ interface AvailableSectionProps {
   specialChallenge: SpecialChallengeItem;
 }
 
-export function AvailableSection({ challenges, specialChallenge }: AvailableSectionProps) {
+export function AvailableSection({
+  challenges,
+  specialChallenge
+}: AvailableSectionProps) {
+  const [challengeLimit, setChallengeLimit] = useState(6);
+
+  useEffect(() => {
+    setChallengeLimit(6);
+  }, [challenges]);
+
+  const displayedChallenges = challenges.slice(0, challengeLimit);
+  const canLoadMore = displayedChallenges.length < challenges.length;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-slate-900">Available Challenges</h2>
+        <h2 className="text-xl font-bold text-slate-900">
+          Available Challenges
+        </h2>
         <span className="text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors flex items-center gap-1 cursor-pointer">
           View Archive
           <Clock className="w-3.5 h-3.5" />
@@ -47,7 +61,7 @@ export function AvailableSection({ challenges, specialChallenge }: AvailableSect
 
       {/* Grid of regular challenges */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {challenges.map((challenge) => (
+        {displayedChallenges.map((challenge) => (
           <ChallengesCard key={challenge.id} challenge={challenge} />
         ))}
       </div>
@@ -75,7 +89,9 @@ export function AvailableSection({ challenges, specialChallenge }: AvailableSect
                   {specialChallenge.timeRemaining}
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 leading-snug">{specialChallenge.title}</h3>
+              <h3 className="text-lg font-bold text-slate-900 leading-snug">
+                {specialChallenge.title}
+              </h3>
               <p className="text-xs text-zinc-500 leading-relaxed font-medium line-clamp-2">
                 {specialChallenge.description}
               </p>
@@ -97,10 +113,24 @@ export function AvailableSection({ challenges, specialChallenge }: AvailableSect
         </Card>
 
         <div className="lg:col-span-4 flex items-center justify-center w-full">
-          <button className="w-full py-4 border-2 border-zinc-200 hover:border-zinc-300 text-zinc-500 hover:text-slate-800 rounded-2xl flex items-center justify-center gap-1 text-sm font-bold transition-all cursor-pointer">
-            Load more challenges
-            <ChevronDown className="w-4 h-4" />
-          </button>
+          {canLoadMore ? (
+            <button
+              type="button"
+              onClick={() =>
+                setChallengeLimit((current) =>
+                  Math.min(current + 6, challenges.length)
+                )
+              }
+              className="w-full py-4 border-2 border-zinc-200 hover:border-zinc-300 text-zinc-500 hover:text-slate-800 rounded-2xl flex items-center justify-center gap-1 text-sm font-bold transition-all"
+            >
+              Load more challenges
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          ) : (
+            <span className="text-xs text-zinc-400">
+              Semua tantangan telah ditampilkan.
+            </span>
+          )}
         </div>
       </div>
     </div>

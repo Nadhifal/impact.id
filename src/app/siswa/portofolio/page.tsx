@@ -3,9 +3,9 @@ import {
   bioProfile,
   summaryStats,
   coreSkills,
-  portfolioProjects,
+  portfolioProjects as fallbackPortfolioProjects,
   aiRecommendations,
-  verifiedCredentials,
+  verifiedCredentials
 } from "./data";
 import { prisma } from "@/lib/prisma";
 import { verifyJWT } from "@/lib/auth";
@@ -16,11 +16,45 @@ import { KaryaSection } from "./components/section/KaryaSection";
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_PROJECT_IMAGES = [
+  "https://images.unsplash.com/photo-1511974035430-5de47d3b95da?auto=format&fit=crop&w=400&h=250&q=80",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=400&h=250&q=80",
+  "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=400&h=250&q=80"
+];
+
+function parseProfileTags(raw?: string | null) {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    if (typeof parsed === "string")
+      return parsed
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+  } catch {
+    if (typeof raw === "string")
+      return raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+  }
+
+  return [];
+}
+
+function getProjectImage(seed: string) {
+  const index = seed?.length ? seed.length % DEFAULT_PROJECT_IMAGES.length : 0;
+  return DEFAULT_PROJECT_IMAGES[index];
+}
+
 // Server Component — query Prisma directly using logged-in user
 export default async function SiswaPortfolioPage() {
   let liveCredentials: typeof verifiedCredentials = [];
   let liveBio = bioProfile;
   let liveStats = summaryStats;
+  let portfolioProjects = fallbackPortfolioProjects;
 
   // Get user ID from auth cookie
   const cookieStore = await cookies();
@@ -44,30 +78,54 @@ export default async function SiswaPortfolioPage() {
           submissions: {
             where: { status: "COMPLETED" },
             include: { challenge: true, verification: true },
-            orderBy: { updatedAt: "desc" },
+            orderBy: { updatedAt: "desc" }
           },
-        },
+          portfolios: true
+        }
       });
 
       if (user) {
-        // Override bio with real DB data
+        const profileTags = [
+          ...parseProfileTags(user.profile?.interests),
+          ...parseProfileTags(user.profile?.talents)
+        ].slice(0, 4);
+
         liveBio = {
           ...bioProfile,
           name: user.name ?? bioProfile.name,
+          role: user.role === "STUDENT" ? "" : user.role,
           institution:
             user.profile?.schoolName ??
             user.profile?.city ??
             bioProfile.institution,
+          tags: profileTags.length > 0 ? profileTags : bioProfile.tags,
+          avatarUrl: user.avatarUrl ?? ""
         };
 
         // Override stats from human capital score
         const hcs = user.humanCapitalScore;
         if (hcs) {
           liveStats = [
-            { label: "Leadership", value: String(Math.round(hcs.leadership)), iconName: "impact" },
-            { label: "Kreativitas", value: String(Math.round(hcs.creativity)), iconName: "projects" },
-            { label: "Kolaborasi", value: String(Math.round(hcs.collaboration)), iconName: "hours" },
-            { label: "Problem Solving", value: String(Math.round(hcs.problemSolving)), iconName: "partners" },
+            {
+              label: "Leadership",
+              value: String(Math.round(hcs.leadership)),
+              iconName: "impact"
+            },
+            {
+              label: "Kreativitas",
+              value: String(Math.round(hcs.creativity)),
+              iconName: "projects"
+            },
+            {
+              label: "Kolaborasi",
+              value: String(Math.round(hcs.collaboration)),
+              iconName: "hours"
+            },
+            {
+              label: "Problem Solving",
+              value: String(Math.round(hcs.problemSolving)),
+              iconName: "partners"
+            }
           ];
         } else {
           // No HCS yet — show empty stats
@@ -75,22 +133,53 @@ export default async function SiswaPortfolioPage() {
             { label: "Leadership", value: "—", iconName: "impact" },
             { label: "Kreativitas", value: "—", iconName: "projects" },
             { label: "Kolaborasi", value: "—", iconName: "hours" },
-            { label: "Problem Solving", value: "—", iconName: "partners" },
+            { label: "Problem Solving", value: "—", iconName: "partners" }
           ];
         }
 
-        // Build credentials from completed+verified submissions
+        // Build project cards from portfolio records and completed challenges
+        const portfolioProjectsFromDb = user.portfolios.map((item) => ({
+          title: item.title,
+          category: "Portofolio",
+          description: item.description,
+          tags: [
+            item.blockchainTx ? "Blockchain Verified" : "Portofolio",
+            `Impact ${item.impactScore}`
+          ],
+          isVerified: !!item.blockchainTx,
+          imageUrl: getProjectImage(item.title)
+        }));
+
+        const challengeProjects = user.submissions.map((sub) => ({
+          title: sub.challenge.title,
+          category: sub.challenge.category,
+          description: sub.challenge.description,
+          tags: [sub.challenge.target ?? "Umum", `${sub.challenge.points} pts`],
+          isVerified: sub.verification?.isApproved ?? false,
+          imageUrl: getProjectImage(
+            sub.challenge.category ?? sub.challenge.title
+          )
+        }));
+
+        const liveProjects = [...portfolioProjectsFromDb, ...challengeProjects];
+
+        if (liveProjects.length > 0) {
+          portfolioProjects = liveProjects;
+        }
+
         if (user.submissions.length > 0) {
           liveCredentials = user.submissions.map((sub) => ({
             id: sub.id,
             type: "VERIFIED CREDENTIAL",
             title: sub.challenge.title,
             issuer: "IMPACT.ID",
-            issuedDate: `Diterbitkan: ${new Date(sub.updatedAt).toLocaleDateString("id-ID", {
+            issuedDate: `Diterbitkan: ${new Date(
+              sub.updatedAt
+            ).toLocaleDateString("id-ID", {
               day: "numeric",
               month: "short",
-              year: "numeric",
-            })}`,
+              year: "numeric"
+            })}`
           }));
         }
       }
