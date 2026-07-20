@@ -38,6 +38,10 @@
   - Menstandarisasi toggle switch menggunakan rounded switch UI.
 - `src/app/admin/settings/components/section/NotificationsTab.tsx`
   - Mengubah checkbox notifikasi menjadi rounded switch UI.
+- `src/app/api/admin/users/[id]/route.ts`
+  - Mengirim email notifikasi ketika akun guru/dinas pending disetujui.
+- `src/lib/email.ts`
+  - Menambahkan util email SMTP untuk pengiriman notifikasi.
 
 ## Apa yang ditambahkan
 
@@ -45,6 +49,7 @@
 - `AuthProvider` hanya di area layout yang memerlukan autentikasi.
 - Rounded toggle switch UI pada admin settings.
 - Autocomplete form login yang lebih stabil.
+- Mekanisme notifikasi email approval untuk akun guru/dinas.
 - Dokumentasi ringkas di file `task-summary.md`.
 
 ## Apa yang dihapus

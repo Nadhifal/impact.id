@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendUserApprovalEmail } from "@/lib/email";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -34,6 +35,10 @@ export async function PUT(request: Request, context: RouteContext) {
       where: { id },
       data
     });
+
+    if (approvePending && currentUser.password.startsWith("PENDING_")) {
+      await sendUserApprovalEmail(user.email, user.name, user.role);
+    }
 
     if (adminId) {
       await prisma.adminLog.create({
