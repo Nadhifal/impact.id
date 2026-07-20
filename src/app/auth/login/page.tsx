@@ -3,7 +3,16 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, Shield, Zap, ChevronRight, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Shield,
+  Zap,
+  ChevronRight,
+  AlertCircle
+} from "lucide-react";
 import { AuthLayout } from "../components/AuthLayout";
 import { BenefitCard } from "../components/BenefitCard";
 import { Input } from "@/app/shared/components/ui/input";
@@ -27,7 +36,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password })
       });
 
       const data = await res.json();
@@ -49,7 +58,7 @@ function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
       {/* Error Message */}
       {error && (
         <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
@@ -68,6 +77,7 @@ function LoginForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="nama@email.com"
+        autoComplete="email"
         required
       />
 
@@ -81,9 +91,13 @@ function LoginForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="••••••••"
+        autoComplete="current-password"
         required
         headerAction={
-          <Link href="#" className="text-xs font-bold text-primary hover:underline">
+          <Link
+            href="#"
+            className="text-xs font-bold text-primary hover:underline"
+          >
             Lupa password?
           </Link>
         }
@@ -92,9 +106,15 @@ function LoginForm() {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="text-zinc-400 hover:text-zinc-600 transition-colors"
-            aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+            aria-label={
+              showPassword ? "Sembunyikan password" : "Tampilkan password"
+            }
           >
-            {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+            {showPassword ? (
+              <EyeOff className="w-[18px] h-[18px]" />
+            ) : (
+              <Eye className="w-[18px] h-[18px]" />
+            )}
           </button>
         }
       />
@@ -121,19 +141,29 @@ export default function LoginPage() {
           Selamat Datang
         </h1>
         <p className="text-zinc-500 text-sm text-center mb-8 max-w-[380px] leading-relaxed">
-          Buat dan kembangkan perjalanan pertumbuhan Anda melalui karya dan solusi nyata
+          Buat dan kembangkan perjalanan pertumbuhan Anda melalui karya dan
+          solusi nyata
         </p>
 
         {/* Form Card */}
         <div className="bg-white border border-zinc-100 rounded-3xl p-8 shadow-sm w-full mb-6">
-          <React.Suspense fallback={<div className="py-12 text-center text-zinc-500 text-sm">Memuat form login...</div>}>
+          <React.Suspense
+            fallback={
+              <div className="py-12 text-center text-zinc-500 text-sm">
+                Memuat form login...
+              </div>
+            }
+          >
             <LoginForm />
           </React.Suspense>
 
           {/* Register Link */}
           <div className="mt-8 text-center text-xs text-zinc-500">
             Belum Punya Akun?{" "}
-            <Link href="/auth/register" className="font-bold text-primary hover:underline">
+            <Link
+              href="/auth/register"
+              className="font-bold text-primary hover:underline"
+            >
               Buat Akun
             </Link>
           </div>

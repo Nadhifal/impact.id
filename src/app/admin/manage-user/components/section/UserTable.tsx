@@ -1,9 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Edit2, Check, X, RotateCcw, Ban, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Edit2,
+  Check,
+  X,
+  RotateCcw,
+  Ban,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
 import { Card } from "../../../layouts/ui/Card";
-import { Badge } from "../../../layouts/ui/Badge";
+import { Badge } from "../../../../shared/components/ui/badge";
 import { UserItem } from "../../data";
 
 interface UserTableProps {
@@ -15,29 +24,97 @@ export function UserTable({ users: initialUsers }: UserTableProps) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const approveUser = async (id: string) => {
+    setProcessingId(id);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approvePending: true })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === id ? { ...u, status: "AKTIF" } : u))
+        );
+      } else {
+        console.error("Approve failed:", json.error || json);
+      }
+    } catch (error) {
+      console.error("Approve user error:", error);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const rejectUser = async (id: string) => {
+    setProcessingId(id);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "DELETE"
+      });
+      const json = await res.json();
+      if (json.success) {
+        setUsers((prev) => prev.filter((u) => u.id !== id));
+      } else {
+        console.error("Delete failed:", json.error || json);
+      }
+    } catch (error) {
+      console.error("Reject user error:", error);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   const filteredUsers = users.filter((u) => {
-    const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) || 
-                          u.email.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      u.name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
     const matchesStatus = statusFilter === "all" || u.status === statusFilter;
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const handleVerify = (id: string, isApproved: boolean) => {
-    setUsers(users.map((u) => u.id === id ? { ...u, status: isApproved ? "AKTIF" : "NONAKTIF" } : u));
+    setUsers(
+      users.map((u) =>
+        u.id === id ? { ...u, status: isApproved ? "AKTIF" : "NONAKTIF" } : u
+      )
+    );
+  };
+
+  const statusBadgeProps: Record<
+    UserItem["status"],
+    { variant: "primary" | "secondary" | "outline"; className?: string }
+  > = {
+    AKTIF: {
+      variant: "primary",
+      className: "bg-emerald-50 text-emerald-700 border border-emerald-100"
+    },
+    "MENUNGGU VERIFIKASI": {
+      variant: "outline",
+      className: "bg-amber-50 text-amber-600 border border-amber-100"
+    },
+    NONAKTIF: {
+      variant: "secondary",
+      className: "bg-slate-100 text-slate-500 border border-slate-200"
+    }
   };
 
   const handleToggleStatus = (id: string, currentStatus: string) => {
-    setUsers(users.map((u) => {
-      if (u.id === id) {
-        return {
-          ...u,
-          status: currentStatus === "AKTIF" ? "NONAKTIF" : "AKTIF"
-        };
-      }
-      return u;
-    }));
+    setUsers(
+      users.map((u) => {
+        if (u.id === id) {
+          return {
+            ...u,
+            status: currentStatus === "AKTIF" ? "NONAKTIF" : "AKTIF"
+          };
+        }
+        return u;
+      })
+    );
   };
 
   return (
@@ -86,49 +163,75 @@ export function UserTable({ users: initialUsers }: UserTableProps) {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/70 border-b border-slate-100">
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nama</th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role</th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Institusi</th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Aksi</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Nama
+              </th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Role
+              </th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Institusi
+              </th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
+                Aksi
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-xs text-slate-400 font-semibold">
+                <td
+                  colSpan={5}
+                  className="px-6 py-12 text-center text-xs text-slate-400 font-semibold"
+                >
                   Tidak ada pengguna ditemukan
                 </td>
               </tr>
             )}
             {filteredUsers.map((row) => (
-              <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+              <tr
+                key={row.id}
+                className="hover:bg-slate-50/50 transition-colors"
+              >
                 <td className="px-6 py-4">
                   <div>
-                    <span className="text-sm font-bold text-slate-800">{row.name}</span>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">{row.email}</p>
+                    <span className="text-sm font-bold text-slate-800">
+                      {row.name}
+                    </span>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                      {row.email}
+                    </p>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-xs font-semibold text-slate-500">{row.role}</td>
-                <td className="px-6 py-4 text-xs font-semibold text-slate-600">{row.school}</td>
+                <td className="px-6 py-4 text-xs font-semibold text-slate-500">
+                  {row.role}
+                </td>
+                <td className="px-6 py-4 text-xs font-semibold text-slate-600">
+                  {row.school}
+                </td>
                 <td className="px-6 py-4">
-                  <Badge status={row.status} />
+                  <Badge {...statusBadgeProps[row.status]}>{row.status}</Badge>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-3">
                     {row.status === "MENUNGGU VERIFIKASI" ? (
                       <>
                         <button
-                          onClick={() => handleVerify(row.id, true)}
-                          className="p-1 hover:bg-emerald-50 rounded-full text-emerald-600 transition-colors cursor-pointer"
-                          title="Setujui"
+                          onClick={() => approveUser(row.id)}
+                          disabled={processingId === row.id}
+                          className="p-1 hover:bg-emerald-50 rounded-full text-emerald-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Setujui akun"
                         >
                           <Check className="w-5 h-5" />
                         </button>
                         <button
-                          onClick={() => handleVerify(row.id, false)}
-                          className="p-1 hover:bg-rose-50 rounded-full text-rose-600 transition-colors cursor-pointer"
-                          title="Tolak"
+                          onClick={() => rejectUser(row.id)}
+                          disabled={processingId === row.id}
+                          className="p-1 hover:bg-rose-50 rounded-full text-rose-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Tolak akun"
                         >
                           <X className="w-5 h-5" />
                         </button>
@@ -143,7 +246,9 @@ export function UserTable({ users: initialUsers }: UserTableProps) {
                         </button>
                         {row.status === "NONAKTIF" ? (
                           <button
-                            onClick={() => handleToggleStatus(row.id, row.status)}
+                            onClick={() =>
+                              handleToggleStatus(row.id, row.status)
+                            }
                             className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
                             title="Aktifkan Kembali"
                           >
@@ -151,7 +256,9 @@ export function UserTable({ users: initialUsers }: UserTableProps) {
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleToggleStatus(row.id, row.status)}
+                            onClick={() =>
+                              handleToggleStatus(row.id, row.status)
+                            }
                             className="p-1 hover:bg-rose-50 rounded-md text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                             title="Blokir/Nonaktifkan"
                           >
@@ -177,9 +284,13 @@ export function UserTable({ users: initialUsers }: UserTableProps) {
           <button className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 cursor-pointer transition-all">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button className="w-8 h-8 rounded-lg text-xs font-bold bg-[#00473e] text-white flex items-center justify-center select-none">1</button>
+          <button className="w-8 h-8 rounded-lg text-xs font-bold bg-[#00473e] text-white flex items-center justify-center select-none">
+            1
+          </button>
           <span className="text-xs text-slate-400 px-1">...</span>
-          <button className="w-8 h-8 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 flex items-center justify-center transition-all cursor-pointer">1820</button>
+          <button className="w-8 h-8 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 flex items-center justify-center transition-all cursor-pointer">
+            1820
+          </button>
           <button className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 cursor-pointer transition-all">
             <ChevronRight className="w-4 h-4" />
           </button>

@@ -11,14 +11,14 @@ export async function GET() {
           include: { profile: true }
         },
         challenge: true,
-        verification: true,
+        verification: true
       },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: "desc" }
     });
 
     return NextResponse.json({
       success: true,
-      data: submissions,
+      data: submissions
     });
   } catch (error: any) {
     console.error("GET /api/submissions error:", error);
@@ -42,10 +42,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Upsert submission (if already exists, update proof and status to SUBMITTED)
+    const autoVerificationSetting = await prisma.landingPageContent.findUnique({
+      where: { key: "autoVerificationEnabled" }
+    });
+
+    const autoVerificationEnabled = autoVerificationSetting
+      ? JSON.parse(autoVerificationSetting.value)
+      : false;
+
+    // Upsert submission (if already exists, update proof and status according to admin setting)
     // We search by userId + challengeId
     const existingSubmission = await prisma.submission.findFirst({
-      where: { userId, challengeId },
+      where: { userId, challengeId }
     });
 
     let submission;
@@ -55,9 +63,15 @@ export async function POST(request: Request) {
         data: {
           proofUrl,
           report,
-          status: "SUBMITTED",
-        },
+          status: autoVerificationEnabled ? "COMPLETED" : "SUBMITTED"
+        }
       });
+
+      if (!autoVerificationEnabled) {
+        await prisma.verification.deleteMany({
+          where: { submissionId: submission.id }
+        });
+      }
     } else {
       submission = await prisma.submission.create({
         data: {
@@ -65,9 +79,32 @@ export async function POST(request: Request) {
           challengeId,
           proofUrl,
           report,
-          status: "SUBMITTED",
-        },
+          status: autoVerificationEnabled ? "COMPLETED" : "SUBMITTED"
+        }
       });
+    }
+
+    if (autoVerificationEnabled) {
+      const verifier =
+        (await prisma.user.findFirst({ where: { role: "TEACHER" } })) ||
+        (await prisma.user.findFirst({ where: { role: "ADMIN" } }));
+
+      if (verifier) {
+        await prisma.verification.upsert({
+          where: { submissionId: submission.id },
+          update: {
+            teacherId: verifier.id,
+            feedback: "Verifikasi otomatis saat submit challenge.",
+            isApproved: true
+          },
+          create: {
+            submissionId: submission.id,
+            teacherId: verifier.id,
+            feedback: "Verifikasi otomatis saat submit challenge.",
+            isApproved: true
+          }
+        });
+      }
     }
 
     // Purge cache to force Next.js to fetch fresh DB data
@@ -78,6 +115,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       data: submission,
+      pending: submission.status === "SUBMITTED",
+      status: submission.status
     });
   } catch (error: any) {
     console.error("POST /api/submissions error:", error);

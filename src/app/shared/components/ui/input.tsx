@@ -9,13 +9,19 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className = "", label, icon: Icon, rightIcon, headerAction, ...props }, ref) => {
+  (
+    { className = "", label, icon: Icon, rightIcon, headerAction, ...props },
+    ref
+  ) => {
     return (
       <div className={className}>
         {(label || headerAction) && (
           <div className="flex justify-between items-center mb-2">
             {label && (
-              <label htmlFor={props.id} className="block text-xs font-bold text-zinc-800 uppercase tracking-wider">
+              <label
+                htmlFor={props.id}
+                className="block text-xs font-bold text-zinc-800 uppercase tracking-wider"
+              >
                 {label}
               </label>
             )}

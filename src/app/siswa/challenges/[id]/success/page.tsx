@@ -2,11 +2,22 @@
 
 import React from "react";
 import Link from "next/link";
-import { CheckCircle2, Download, Home, Clock, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import {
+  CheckCircle2,
+  Download,
+  Home,
+  Clock,
+  ChevronRight
+} from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 import { Button } from "@/app/shared/components/ui/button";
 
 export default function SubmissionSuccessPage() {
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status") ?? "COMPLETED";
+  const isPending = status === "SUBMITTED";
+
   return (
     <div className="py-10 px-6 md:px-12 max-w-5xl mx-auto space-y-8 flex flex-col items-center">
       {/* Top Banner (Light Green Card Box) */}
@@ -17,13 +28,21 @@ export default function SubmissionSuccessPage() {
         </div>
 
         <div className="space-y-4 relative z-10">
-          <div className="w-14 h-14 rounded-full bg-[#00473e] text-white flex items-center justify-center mx-auto shadow-md">
+          <div
+            className={`w-14 h-14 rounded-full ${isPending ? "bg-amber-500" : "bg-[#00473e]"} text-white flex items-center justify-center mx-auto shadow-md`}
+          >
             <CheckCircle2 className="w-8 h-8 fill-current" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Submit Berhasil!</h1>
-            <p className="text-sm font-semibold text-emerald-900/80 max-w-md mx-auto leading-relaxed">
-              Laporan tantangan Anda telah berhasil dikirim ke sistem. Data sedang menunggu antrean verifikasi.
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+              Submit Berhasil!
+            </h1>
+            <p
+              className={`text-sm font-semibold max-w-md mx-auto leading-relaxed ${isPending ? "text-amber-900/90" : "text-emerald-900/80"}`}
+            >
+              {isPending
+                ? "Laporan tantangan Anda telah berhasil dikirim. Data sedang menunggu verifikasi guru sebelum sertifikat diterbitkan."
+                : "Laporan tantangan Anda telah berhasil dikirim dan diverifikasi secara otomatis. Sertifikat dapat langsung diterbitkan."}
             </p>
           </div>
         </div>
@@ -34,9 +53,13 @@ export default function SubmissionSuccessPage() {
         <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
           STATUS SAAT INI
         </span>
-        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold bg-amber-50 text-amber-600 border border-amber-100">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-          MENUNGGU VERIFIKASI
+        <span
+          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold ${isPending ? "bg-amber-50 text-amber-600 border border-amber-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100"}`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full animate-pulse ${isPending ? "bg-amber-500" : "bg-emerald-500"}`}
+          />
+          {isPending ? "MENUNGGU VERIFIKASI" : "TERVERIFIKASI"}
         </span>
       </Card>
 
@@ -70,8 +93,12 @@ export default function SubmissionSuccessPage() {
                       <span className="text-xs font-black">PDF</span>
                     </div>
                     <div className="space-y-0.5">
-                      <h5 className="text-xs font-bold text-slate-700">Laporan_Final_Strategi_V1.pdf</h5>
-                      <p className="text-[10px] text-zinc-400 font-bold">2.4 MB • SUBMITTED JUST NOW</p>
+                      <h5 className="text-xs font-bold text-slate-700">
+                        Laporan_Final_Strategi_V1.pdf
+                      </h5>
+                      <p className="text-[10px] text-zinc-400 font-bold">
+                        2.4 MB • SUBMITTED JUST NOW
+                      </p>
                     </div>
                   </div>
                   <button className="text-zinc-400 hover:text-slate-700 transition-colors">
@@ -88,7 +115,9 @@ export default function SubmissionSuccessPage() {
           <Card className="bg-white border border-zinc-100 shadow-md overflow-hidden rounded-3xl flex flex-col justify-end min-h-[220px] p-6 relative h-full">
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent z-10" />
             <div className="absolute inset-0 bg-zinc-200 bg-[url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=400&h=250&q=80')] bg-cover bg-center" />
-            <span className="relative z-20 text-xs font-extrabold text-white">Pratinjau Bukti Impact</span>
+            <span className="relative z-20 text-xs font-extrabold text-white">
+              Pratinjau Bukti Impact
+            </span>
           </Card>
         </div>
       </div>
@@ -103,10 +132,20 @@ export default function SubmissionSuccessPage() {
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
               Langkah Selanjutnya
             </span>
-            <h4 className="text-base font-extrabold text-slate-800">Peninjauan oleh Mentor</h4>
+            <h4 className="text-base font-extrabold text-slate-800">
+              Peninjauan oleh Mentor
+            </h4>
           </div>
           <p className="text-xs text-zinc-500 font-semibold leading-relaxed">
-            <span className="font-extrabold text-[#00473e]">Dr. Budi Santoso (Dosen Pembimbing)</span> akan melakukan peninjauan terhadap substansi laporan Anda dalam kurun waktu <span className="text-emerald-600 font-extrabold">1-3 hari kerja</span>. Mohon pantau notifikasi Anda secara berkala.
+            <span className="font-extrabold text-[#00473e]">
+              Dr. Budi Santoso (Dosen Pembimbing)
+            </span>{" "}
+            akan melakukan peninjauan terhadap substansi laporan Anda dalam
+            kurun waktu{" "}
+            <span className="text-emerald-600 font-extrabold">
+              1-3 hari kerja
+            </span>
+            . Mohon pantau notifikasi Anda secara berkala.
           </p>
         </div>
       </Card>

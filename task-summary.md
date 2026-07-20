@@ -2,9 +2,12 @@
 
 ## Tugas yang sudah dikerjakan
 
-- Mengidentifikasi penyebab halaman landing page menjadi berat.
-- Mengurangi bundle public dengan memindahkan logika auth dan meminimalkan client-side rendering.
-- Memperbaiki masalah tombol/tautan pada HeroSection yang tidak berfungsi di desktop.
+- Mengidentifikasi dan memperbaiki beban halaman landing page dengan memindahkan logika dari client ke server.
+- Menurunkan penggunaan client-side rendering pada halaman publik dan login.
+- Memperbaiki masalah tombol pada HeroSection yang tidak responsif di desktop.
+- Menstandarisasi semua toggle switch admin settings menjadi rounded switch dengan `bg-primary` saat aktif.
+- Membagi halaman pengaturan admin menjadi section file terpisah untuk setiap tab.
+- Memperbaiki potensi hydration mismatch pada login dengan stabilisasi form dan input.
 - Memvalidasi perubahan dengan build Next.js menggunakan terminal `cmd`.
 
 ## Apa yang diubah
@@ -25,15 +28,34 @@
   - Menambahkan `AuthProvider` pada layout dinas.
 - `src/app/components/sections/HeroSection.tsx`
   - Menambahkan `pointer-events-none` pada elemen dekoratif latar belakang untuk mencegah overlay memblokir interaksi klik di desktop.
+- `src/app/auth/login/page.tsx`
+  - Menambahkan `autoComplete="on"` ke form.
+  - Menambahkan `autoComplete="email"` pada email input.
+  - Menambahkan `autoComplete="current-password"` pada password input.
+- `src/app/shared/components/ui/input.tsx`
+  - Menghapus `suppressHydrationWarning={true}` pada elemen input.
+- `src/app/admin/settings/components/section/PlatformSettingsTab.tsx`
+  - Menstandarisasi toggle switch menggunakan rounded switch UI.
+- `src/app/admin/settings/components/section/NotificationsTab.tsx`
+  - Mengubah checkbox notifikasi menjadi rounded switch UI.
 
 ## Apa yang ditambahkan
 
 - Penanganan server-side data pada landing page untuk mengurangi beban client.
-- `AuthProvider` hanya di area layout yang membutuhkan autentikasi, bukan pada seluruh aplikasi.
+- `AuthProvider` hanya di area layout yang memerlukan autentikasi.
+- Rounded toggle switch UI pada admin settings.
+- Autocomplete form login yang lebih stabil.
 - Dokumentasi ringkas di file `task-summary.md`.
+
+## Apa yang dihapus
+
+- `AuthProvider` dari `src/app/layout.tsx` agar tidak diterapkan secara global.
+- `suppressHydrationWarning={true}` pada `src/app/shared/components/ui/input.tsx`.
 
 ## Hasil
 
-- Halaman landing page lebih ringan dan tidak lagi memuat data landing page dengan fetch klien.
-- Pengguna desktop dapat kembali mengklik tombol pada HeroSection.
-- Struktur dan visual UI/UX tetap dipertahankan.
+- Halaman landing page lebih ringan dan lebih cepat karena data diambil dari server.
+- Form login lebih stabil terhadap hydration mismatch.
+- Toggle di admin settings konsisten secara visual.
+- Pengguna desktop bisa berinteraksi kembali dengan tombol HeroSection.
+- Aplikasi lebih modular dengan section file pengaturan admin yang terpisah.

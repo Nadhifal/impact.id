@@ -4,9 +4,6 @@ import { signJWT, ROLE_DASHBOARD } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 
-// Roles that require admin verification before active
-const PENDING_ROLES = ["TEACHER", "DINAS"];
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -33,20 +30,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const autoVerificationSetting = await prisma.landingPageContent.findUnique({
+      where: { key: "autoVerificationEnabled" }
+    });
+    const autoVerificationEnabled = autoVerificationSetting
+      ? JSON.parse(autoVerificationSetting.value)
+      : false;
+
+    const autoApprovalTeacherSetting =
+      await prisma.landingPageContent.findUnique({
+        where: { key: "autoApprovalTeacherAccountsEnabled" }
+      });
+    const autoApprovalDinasSetting = await prisma.landingPageContent.findUnique(
+      {
+        where: { key: "autoApprovalDinasAccountsEnabled" }
+      }
+    );
+
+    const autoApprovalTeacherAccountsEnabled =
+      autoApprovalTeacherSetting !== null
+        ? JSON.parse(autoApprovalTeacherSetting.value)
+        : autoVerificationEnabled;
+    const autoApprovalDinasAccountsEnabled =
+      autoApprovalDinasSetting !== null
+        ? JSON.parse(autoApprovalDinasSetting.value)
+        : autoVerificationEnabled;
+
+    const shouldBePending =
+      (role === "TEACHER" && !autoApprovalTeacherAccountsEnabled) ||
+      (role === "DINAS" && !autoApprovalDinasAccountsEnabled);
+
     const hashedPassword = await bcrypt.hash(password, 12);
-    const isPending = PENDING_ROLES.includes(role);
+    const storedPassword = shouldBePending
+      ? `PENDING_${hashedPassword}`
+      : hashedPassword;
 
     const user = await prisma.user.create({
       data: {
         id: randomUUID(),
         email,
-        password: hashedPassword,
+        password: storedPassword,
         name,
-        role,
-      },
+        role
+      }
     });
 
-    // Create Profile if STUDENT or if school details are provided
+    // Create Profile where applicable
     if (role === "STUDENT" || extraData.school || extraData.province) {
       await prisma.profile.create({
         data: {
@@ -55,47 +84,60 @@ export async function POST(req: NextRequest) {
           province: extraData.province || null,
           city: extraData.city || null,
           interests: JSON.stringify(extraData.interests || []),
-          talents: JSON.stringify(extraData.skills ? extraData.skills.split(",") : []),
-        },
+          talents: JSON.stringify(
+            extraData.skills ? extraData.skills.split(",") : []
+          )
+        }
       });
     }
 
-    // For STUDENT: auto-login by issuing JWT
-    if (!isPending) {
-      const token = await signJWT({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        isVerified: true,
-      });
-
-      const response = NextResponse.json({
+    if (shouldBePending) {
+      return NextResponse.json({
         success: true,
-        pending: false,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
-        redirectTo: ROLE_DASHBOARD[role] ?? "/",
+        pending: true,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
       });
-
-      response.cookies.set("impact_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
-
-      return response;
     }
 
-    // For TEACHER/DINAS: account created but pending verification
-    return NextResponse.json({
-      success: true,
-      pending: true,
-      message: "Akun berhasil dibuat. Menunggu verifikasi admin.",
+    const token = await signJWT({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      isVerified: true
     });
+
+    const response = NextResponse.json({
+      success: true,
+      pending: false,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
+      redirectTo: ROLE_DASHBOARD[role] ?? "/"
+    });
+
+    response.cookies.set("impact_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/"
+    });
+
+    return response;
   } catch (error) {
     console.error("[REGISTER ERROR]", error);
-    return NextResponse.json({ error: "Terjadi kesalahan server." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server." },
+      { status: 500 }
+    );
   }
 }

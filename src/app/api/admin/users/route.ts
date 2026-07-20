@@ -9,38 +9,42 @@ export async function GET() {
       await Promise.all([
         prisma.user.findMany({
           include: { profile: true },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: "desc" }
         }),
         prisma.user.count({ where: { role: "STUDENT" } }),
         prisma.user.count({ where: { role: "TEACHER" } }),
         prisma.user.count({ where: { role: "DINAS" } }),
-        prisma.user.count({ where: { role: "ADMIN" } }),
+        prisma.user.count({ where: { role: "ADMIN" } })
       ]);
 
     return NextResponse.json({
       success: true,
       data: {
-        users: users.map((u) => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
-          school: u.profile?.schoolName ?? "—",
-          status: "AKTIF",
-          joinDate: u.createdAt.toLocaleDateString("id-ID", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
-          createdAt: u.createdAt,
-        })),
+        users: users.map((u) => {
+          const isPending = u.password.startsWith("PENDING_");
+          return {
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            school: u.profile?.schoolName ?? "—",
+            status: isPending ? "MENUNGGU VERIFIKASI" : "AKTIF",
+            isPending,
+            joinDate: u.createdAt.toLocaleDateString("id-ID", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric"
+            }),
+            createdAt: u.createdAt
+          };
+        }),
         kpis: {
           students: studentCount,
           teachers: teacherCount,
           dinas: dinasCount,
-          admins: adminCount,
-        },
-      },
+          admins: adminCount
+        }
+      }
     });
   } catch (error: any) {
     console.error("GET /api/admin/users error:", error);
@@ -74,7 +78,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role },
+      data: { name, email, password: hashedPassword, role }
     });
 
     // Log activity
@@ -84,8 +88,8 @@ export async function POST(request: Request) {
           adminId,
           activity: `menambahkan pengguna baru:`,
           highlight: `${name} (${role})`,
-          module: "USER",
-        },
+          module: "USER"
+        }
       });
     }
 

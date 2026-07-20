@@ -10,25 +10,41 @@ export async function PUT(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const { name, email, role, adminId } = body;
+    const { name, email, role, approvePending, adminId } = body;
+
+    const currentUser = await prisma.user.findUnique({ where: { id } });
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: "Pengguna tidak ditemukan." },
+        { status: 404 }
+      );
+    }
+
+    let data: Record<string, any> = {
+      ...(name && { name }),
+      ...(email && { email }),
+      ...(role && { role })
+    };
+
+    if (approvePending && currentUser.password.startsWith("PENDING_")) {
+      data.password = currentUser.password.replace(/^PENDING_/, "");
+    }
 
     const user = await prisma.user.update({
       where: { id },
-      data: {
-        ...(name && { name }),
-        ...(email && { email }),
-        ...(role && { role }),
-      },
+      data
     });
 
     if (adminId) {
       await prisma.adminLog.create({
         data: {
           adminId,
-          activity: `mengedit data pengguna:`,
+          activity: approvePending
+            ? `menyetujui akun pending:`
+            : `mengedit data pengguna:`,
           highlight: `${user.name} (${user.role})`,
-          module: "USER",
-        },
+          module: "USER"
+        }
       });
     }
 
@@ -57,8 +73,8 @@ export async function DELETE(request: Request, context: RouteContext) {
           adminId,
           activity: `menghapus akun pengguna:`,
           highlight: `${user.name} (${user.email})`,
-          module: "USER",
-        },
+          module: "USER"
+        }
       });
     }
 

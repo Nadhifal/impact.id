@@ -23,7 +23,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const isPendingUser = user.password.startsWith("PENDING_");
+    const storedHash = isPendingUser
+      ? user.password.replace(/^PENDING_/, "")
+      : user.password;
+
+    const passwordMatch = await bcrypt.compare(password, storedHash);
     if (!passwordMatch) {
       return NextResponse.json(
         { error: "Email atau password salah." },
@@ -31,28 +36,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check isVerified field (stored in name field as workaround, or as JSON in name)
-    // We'll use a simple convention: if role is TEACHER or DINAS and password starts with "PENDING:"
-    // Better: check if user has a special marker. For now we check a custom field via JSON parse trick.
-    // Since schema doesn't have isVerified yet, we store pending state by prefixing password.
-    // Actually - we'll add a convention: pending users have password prefixed with "PENDING_" before hash.
-    // For now: TEACHER and DINAS accounts are considered active (admin verifies externally).
-    // TODO: Add isVerified column to schema for proper support.
+    if (isPendingUser) {
+      return NextResponse.json(
+        { error: "Akun Anda masih menunggu verifikasi admin.", pending: true },
+        { status: 403 }
+      );
+    }
 
     const token = await signJWT({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      isVerified: true,
+      isVerified: true
     });
 
     const redirectTo = ROLE_DASHBOARD[user.role] ?? "/";
 
     const response = NextResponse.json({
       success: true,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
-      redirectTo,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
+      redirectTo
     });
 
     response.cookies.set("impact_token", token, {
@@ -60,12 +69,15 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
+      path: "/"
     });
 
     return response;
   } catch (error) {
     console.error("[LOGIN ERROR]", error);
-    return NextResponse.json({ error: "Terjadi kesalahan server." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server." },
+      { status: 500 }
+    );
   }
 }

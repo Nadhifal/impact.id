@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Upload, HelpCircle, Check, Send, Sparkles, AlertCircle } from "lucide-react";
+import {
+  Upload,
+  HelpCircle,
+  Check,
+  Send,
+  Sparkles,
+  AlertCircle
+} from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
 import { Button } from "@/app/shared/components/ui/button";
 import { useUser } from "@/app/shared/context/AuthContext";
@@ -42,17 +49,17 @@ export default function SubmitChallengePage() {
       alert("Harap isi tulisan refleksi Anda!");
       return;
     }
-    
+
     // Fallback if useUser hasn't initialized yet
     let targetUserId = user?.id;
     if (!targetUserId) {
-       try {
-         const res = await fetch("/api/auth/me");
-         const data = await res.json();
-         if (data.user?.id) targetUserId = data.user.id;
-       } catch {}
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.user?.id) targetUserId = data.user.id;
+      } catch {}
     }
-    
+
     if (!targetUserId) {
       alert("Sesi Anda tidak valid. Silakan login kembali.");
       return;
@@ -67,15 +74,19 @@ export default function SubmitChallengePage() {
           userId: targetUserId,
           challengeId,
           proofUrl: fileName || "Dokumen_Laporan_Selesai.pdf",
-          report: reflection,
-        }),
+          report: reflection
+        })
       });
 
-      if (!response.ok) {
-        throw new Error("Gagal mengumpulkan challenge ke database");
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(
+          payload.error || "Gagal mengumpulkan challenge ke database"
+        );
       }
 
-      window.location.href = `/siswa/challenges/${challengeId}/success`;
+      const status = payload.status || "COMPLETED";
+      window.location.href = `/siswa/challenges/${challengeId}/success?status=${encodeURIComponent(status)}`;
     } catch (err: any) {
       console.error(err);
       alert("Terjadi kesalahan: " + err.message);
@@ -86,7 +97,9 @@ export default function SubmitChallengePage() {
 
   const handleEnhance = () => {
     if (!reflection.trim()) {
-      alert("Masukkan draf tulisan refleksi Anda terlebih dahulu sebelum mengoptimalkan dengan AI.");
+      alert(
+        "Masukkan draf tulisan refleksi Anda terlebih dahulu sebelum mengoptimalkan dengan AI."
+      );
       return;
     }
     setIsEnhancing(true);
@@ -121,33 +134,41 @@ export default function SubmitChallengePage() {
               Upload Bukti
             </h3>
 
-             <input
+            <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
               accept=".pdf,.png,.jpg,.jpeg"
-             />
+            />
 
-             <div
+            <div
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all ${
                 isUploaded
                   ? "border-emerald-500 bg-emerald-50/20"
                   : "border-zinc-200 hover:border-zinc-300 bg-zinc-50/30"
               }`}
-             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                isUploaded ? "bg-emerald-100 text-emerald-600" : "bg-zinc-100 text-zinc-400"
-              }`}>
+            >
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  isUploaded
+                    ? "bg-emerald-100 text-emerald-600"
+                    : "bg-zinc-100 text-zinc-400"
+                }`}
+              >
                 <Upload className="w-5 h-5" />
               </div>
               <div className="text-center space-y-1">
                 <p className="text-xs font-bold text-slate-700">
-                  {isUploaded ? `${fileName} Berhasil Diupload!` : "Tap to upload or drag & drop project photos, documents, or screenshots."}
+                  {isUploaded
+                    ? `${fileName} Berhasil Diupload!`
+                    : "Tap to upload or drag & drop project photos, documents, or screenshots."}
                 </p>
                 {!isUploaded && (
-                  <p className="text-[10px] text-zinc-400 font-bold">PDF, PNG, JPG up to 10MB</p>
+                  <p className="text-[10px] text-zinc-400 font-bold">
+                    PDF, PNG, JPG up to 10MB
+                  </p>
                 )}
               </div>
 
@@ -159,7 +180,9 @@ export default function SubmitChallengePage() {
                   Browse Files ›
                 </button>
               ) : (
-                <span className="text-[10px] text-emerald-600 font-bold">Klik kembali untuk mengganti file</span>
+                <span className="text-[10px] text-emerald-600 font-bold">
+                  Klik kembali untuk mengganti file
+                </span>
               )}
             </div>
           </Card>
@@ -220,7 +243,7 @@ export default function SubmitChallengePage() {
                 <HelpCircle className="w-4.5 h-4.5 text-primary" />
                 Refleksi dengan Bantuan AI
               </h3>
-              
+
               {/* AI helper button (colored purple `#584FBC` for AI assistant guideline) */}
               <button
                 type="button"
@@ -235,7 +258,9 @@ export default function SubmitChallengePage() {
 
             <div className="border border-zinc-200 rounded-2xl overflow-hidden">
               <div className="bg-zinc-50/50 px-4 py-2 border-b border-zinc-100 flex items-center justify-between">
-                <span className="text-[10px] font-extrabold text-zinc-400">Field Findings & Insights</span>
+                <span className="text-[10px] font-extrabold text-zinc-400">
+                  Field Findings & Insights
+                </span>
                 <div className="flex gap-2 text-xs font-bold text-zinc-400">
                   <span>B</span>
                   <span className="italic">I</span>
@@ -251,7 +276,8 @@ export default function SubmitChallengePage() {
               />
             </div>
             <p className="text-[9px] text-zinc-400 font-bold">
-              AI akan membantu merapikan kalimat refleksi Anda untuk hasil yang lebih profesional.
+              AI akan membantu merapikan kalimat refleksi Anda untuk hasil yang
+              lebih profesional.
             </p>
           </Card>
         </div>
@@ -265,7 +291,10 @@ export default function SubmitChallengePage() {
               PRO TIP
             </div>
             <p className="text-xs text-slate-100 font-medium leading-relaxed italic">
-              "Kemajuan yang luar biasa! Saat menjelaskan refleksi Anda, fokuslah pada perubahan kualitatif dalam tingkat kepercayaan pemilik bisnis. Data tersebut sama berharganya dengan angka-angka."
+              "Kemajuan yang luar biasa! Saat menjelaskan refleksi Anda,
+              fokuslah pada perubahan kualitatif dalam tingkat kepercayaan
+              pemilik bisnis. Data tersebut sama berharganya dengan
+              angka-angka."
             </p>
           </Card>
 
@@ -280,7 +309,10 @@ export default function SubmitChallengePage() {
                 "Angka dampak sudah sesuai dengan logbook harian.",
                 "Refleksi mencakup kendala dan solusi yang diterapkan."
               ].map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-xs font-bold leading-relaxed">
+                <li
+                  key={idx}
+                  className="flex items-start gap-2.5 text-xs font-bold leading-relaxed"
+                >
                   <span className="p-0.5 rounded-full bg-[#00473e]/15 text-[#00473e] shrink-0 mt-0.5">
                     <Check className="w-3 h-3" />
                   </span>

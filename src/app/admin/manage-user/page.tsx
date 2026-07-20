@@ -21,7 +21,7 @@ export default function AdminManageUserPage() {
           STUDENT: "Siswa",
           TEACHER: "Guru",
           DINAS: "Dinas",
-          ADMIN: "Admin",
+          ADMIN: "Admin"
         };
         setUsers(
           json.data.users.map((u: any) => ({
@@ -30,8 +30,11 @@ export default function AdminManageUserPage() {
             email: u.email,
             role: roleMap[u.role] ?? u.role,
             school: u.school,
-            status: "AKTIF" as const,
-            joinDate: u.joinDate,
+            status:
+              u.status === "MENUNGGU VERIFIKASI"
+                ? "MENUNGGU VERIFIKASI"
+                : "AKTIF",
+            joinDate: u.joinDate
           }))
         );
         const k = json.data.kpis;
@@ -39,23 +42,23 @@ export default function AdminManageUserPage() {
           {
             title: "Siswa",
             value: k.students.toLocaleString("id-ID"),
-            label: "Siswa terdaftar aktif",
+            label: "Siswa terdaftar aktif"
           },
           {
             title: "Guru",
             value: k.teachers.toLocaleString("id-ID"),
-            label: "Fasilitator & guru pembimbing",
+            label: "Fasilitator & guru pembimbing"
           },
           {
             title: "Dinas",
             value: k.dinas.toLocaleString("id-ID"),
-            label: "Institusi dinas daerah",
+            label: "Institusi dinas daerah"
           },
           {
             title: "Admin",
             value: k.admins.toLocaleString("id-ID"),
-            label: "Administrator platform",
-          },
+            label: "Administrator platform"
+          }
         ]);
       }
     } catch (err) {
@@ -74,9 +77,12 @@ export default function AdminManageUserPage() {
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Manajemen pengguna</h2>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+            Manajemen pengguna
+          </h2>
           <p className="text-sm font-medium text-slate-500 mt-1">
-            Kelola data siswa, guru, dinas pendidikan daerah, dan administrator platform.
+            Kelola data siswa, guru, dinas pendidikan daerah, dan administrator
+            platform.
           </p>
         </div>
 
