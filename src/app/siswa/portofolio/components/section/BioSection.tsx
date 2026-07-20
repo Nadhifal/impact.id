@@ -70,10 +70,6 @@ export function BioSection({ bio }: BioSectionProps) {
                 .toUpperCase()}
             </span>
           )}
-          {/* Checked verification badge on avatar */}
-          <span className="absolute bottom-1.5 right-1.5 bg-white rounded-full p-0.5 shadow-sm border border-emerald-400">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-current" />
-          </span>
         </div>
 
         <div className="space-y-3">

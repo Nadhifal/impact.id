@@ -58,7 +58,7 @@ function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
+    <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on" suppressHydrationWarning>
       {/* Error Message */}
       {error && (
         <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
