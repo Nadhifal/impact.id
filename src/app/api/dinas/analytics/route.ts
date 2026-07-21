@@ -11,54 +11,49 @@ export async function GET(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    // All student profiles + teacher profiles to get all registered schools
+    // 1. Fetch only registered student profiles for school stats (avoid teachers/admins)
     const registeredProfiles = await prisma.profile.findMany({
+      where: { user: { role: "STUDENT" } },
       select: {
         schoolName: true,
         province: true,
         city: true,
-        user: { select: { role: true, humanCapitalScore: true } },
+        user: {
+          select: {
+            role: true,
+            humanCapitalScore: { select: { totalScore: true } },
+          },
+        },
       },
     });
 
-    const students = await prisma.user.findMany({
+    // 2. Aggregate avg dimensions directly in DB
+    const dimensionsAgg = await prisma.humanCapitalScore.aggregate({
+      _avg: {
+        leadership: true,
+        communication: true,
+        problemSolving: true,
+        creativity: true,
+        collaboration: true,
+      },
+      _count: { userId: true },
+    });
+
+    const studentsCount = await prisma.user.count({
       where: { role: "STUDENT" },
-      include: {
-        humanCapitalScore: true,
-        profile: { select: { province: true, city: true, schoolName: true } },
-      },
     });
 
-    const completedSubmissions = await prisma.submission.findMany({
-      where: { status: "COMPLETED" },
-      include: { challenge: { select: { category: true } } },
-    });
+    const studentsWithHcsCount = dimensionsAgg._count.userId;
 
-    const withHCS = students.filter((s) => s.humanCapitalScore);
+    const avgDimensions = {
+      leadership: dimensionsAgg._avg.leadership ?? 0,
+      communication: dimensionsAgg._avg.communication ?? 0,
+      problemSolving: dimensionsAgg._avg.problemSolving ?? 0,
+      creativity: dimensionsAgg._avg.creativity ?? 0,
+      collaboration: dimensionsAgg._avg.collaboration ?? 0,
+    };
 
-    // ── Dimension Radar: avg per HCS dimension ─────────────────────────────
-    const avgDimensions =
-      withHCS.length > 0
-        ? {
-            leadership:
-              withHCS.reduce((sum, s) => sum + (s.humanCapitalScore?.leadership ?? 0), 0) /
-              withHCS.length,
-            communication:
-              withHCS.reduce((sum, s) => sum + (s.humanCapitalScore?.communication ?? 0), 0) /
-              withHCS.length,
-            problemSolving:
-              withHCS.reduce((sum, s) => sum + (s.humanCapitalScore?.problemSolving ?? 0), 0) /
-              withHCS.length,
-            creativity:
-              withHCS.reduce((sum, s) => sum + (s.humanCapitalScore?.creativity ?? 0), 0) /
-              withHCS.length,
-            collaboration:
-              withHCS.reduce((sum, s) => sum + (s.humanCapitalScore?.collaboration ?? 0), 0) /
-              withHCS.length,
-          }
-        : { leadership: 0, communication: 0, problemSolving: 0, creativity: 0, collaboration: 0 };
-
-    // Build radar data (compare provinsi vs regional avg — here we use 85% of avg as "rata-rata prov" baseline)
+    // Build radar data
     const dimensionsRadarData = [
       {
         subject: "Kepemimpinan",
@@ -87,20 +82,29 @@ export async function GET(req: NextRequest) {
       },
     ];
 
-    // ── Category Distribution (only completed challenges) ─────────────────
+    // 3. Fetch only challenge categories for distribution
+    const completedSubmissions = await prisma.submission.findMany({
+      where: { status: "COMPLETED" },
+      select: {
+        challenge: { select: { category: true } },
+      },
+    });
+
+    // Category Distribution
     const categoryMap = new Map<string, number>();
     for (const sub of completedSubmissions) {
-      const cats = sub.challenge.category.split(",").map((c) => c.trim());
-      for (const cat of cats) {
-        categoryMap.set(cat, (categoryMap.get(cat) ?? 0) + 1);
+      if (sub.challenge?.category) {
+        const cats = sub.challenge.category.split(",").map((c) => c.trim());
+        for (const cat of cats) {
+          categoryMap.set(cat, (categoryMap.get(cat) ?? 0) + 1);
+        }
       }
     }
     const categoryDistributionData = Array.from(categoryMap.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([category, projectsCount]) => ({ category, projectsCount }));
 
-    // ── School Growth (comparison of registered schools) ──────────────────
-    // Get HCS scores grouped by schoolName of all registered student profiles
+    // 4. School Growth (comparison of registered schools)
     const schoolHcsMap = new Map<string, number[]>();
     for (const p of registeredProfiles) {
       if (p.schoolName && p.user?.humanCapitalScore) {
@@ -148,8 +152,8 @@ export async function GET(req: NextRequest) {
         categoryDistributionData,
         topSchoolsGrowth,
         regionalInsights,
-        totalStudents: students.length,
-        studentsWithHCS: withHCS.length,
+        totalStudents: studentsCount,
+        studentsWithHCS: studentsWithHcsCount,
       },
     });
   } catch (error: unknown) {

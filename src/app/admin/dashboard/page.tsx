@@ -1,16 +1,39 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Download, Plus, RefreshCw } from "lucide-react";
 import { AdminKPICards } from "./components/section/AdminKPICards";
-import { GrowthChart } from "./components/section/GrowthChart";
 import { ActionRequired } from "./components/section/ActionRequired";
 import { ActivityLogs } from "./components/section/ActivityLogs";
 import { prisma } from "@/lib/prisma";
 import { ApiAdminStats } from "@/lib/api";
+import nextDynamic from "next/dynamic";
+
+const GrowthChart = nextDynamic(() => import("./components/section/GrowthChart").then(mod => mod.GrowthChart));
 
 export const dynamic = "force-dynamic";
 
-// Server Component — query Prisma directly (no HTTP layer)
-export default async function AdminDashboardPage() {
+// Skeleton Loader for Admin Dashboard
+function AdminDashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Cards Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-28 bg-slate-100 rounded-2xl border border-slate-200/60" />
+        ))}
+      </div>
+      {/* Charts & Actions Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 h-[400px] bg-slate-100 rounded-2xl border border-slate-200/60" />
+        <div className="lg:col-span-1 h-[400px] bg-slate-100 rounded-2xl border border-slate-200/60" />
+      </div>
+      {/* Table Skeleton */}
+      <div className="h-64 bg-slate-100 rounded-2xl border border-slate-200/60" />
+    </div>
+  );
+}
+
+// Inner Server Component that handles DB queries
+async function AdminDashboardContent() {
   let stats: ApiAdminStats | null = null;
 
   try {
@@ -56,6 +79,29 @@ export default async function AdminDashboardPage() {
     // DB unavailable — stats stays null, components will show fallback values
   }
 
+  return (
+    <>
+      {/* KPI stats — pass live data from DB */}
+      <AdminKPICards stats={stats} />
+
+      {/* Growth Chart & Action Panels */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <GrowthChart />
+        </div>
+        <div className="lg:col-span-1">
+          <ActionRequired stats={stats} />
+        </div>
+      </div>
+
+      {/* Activity Logs Table */}
+      <ActivityLogs />
+    </>
+  );
+}
+
+// Shell Page Component
+export default async function AdminDashboardPage() {
   const now = new Date().toLocaleTimeString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
@@ -85,21 +131,10 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI stats — pass live data from DB */}
-      <AdminKPICards stats={stats} />
-
-      {/* Growth Chart & Action Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <GrowthChart />
-        </div>
-        <div className="lg:col-span-1">
-          <ActionRequired stats={stats} />
-        </div>
-      </div>
-
-      {/* Activity Logs Table */}
-      <ActivityLogs />
+      {/* Dynamic Content wrapped in Suspense */}
+      <Suspense fallback={<AdminDashboardSkeleton />}>
+        <AdminDashboardContent />
+      </Suspense>
     </div>
   );
 }

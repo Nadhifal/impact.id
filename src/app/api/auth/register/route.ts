@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signJWT, ROLE_DASHBOARD } from "@/lib/auth";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       (role === "TEACHER" && !autoApprovalTeacherAccountsEnabled) ||
       (role === "DINAS" && !autoApprovalDinasAccountsEnabled);
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const storedPassword = shouldBePending
       ? `PENDING_${hashedPassword}`
       : hashedPassword;

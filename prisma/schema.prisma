@@ -27,6 +27,8 @@ model User {
   portfolios        Portfolio[]
   verificationsDone Verification[]     @relation("TeacherVerifications")
   adminActions      AdminLog[]         @relation("AdminActions")
+
+  @@index([role])
 }
 
 model Profile {
@@ -91,6 +93,10 @@ model Submission {
   verification Verification?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  @@index([status])
+  @@index([userId])
+  @@index([challengeId])
 }
 
 model Verification {

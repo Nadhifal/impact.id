@@ -2,65 +2,108 @@
 
 ## Tugas yang sudah dikerjakan
 
-- Mengidentifikasi dan memperbaiki beban halaman landing page dengan memindahkan logika dari client ke server.
-- Menurunkan penggunaan client-side rendering pada halaman publik dan login.
-- Memperbaiki masalah tombol pada HeroSection yang tidak responsif di desktop.
-- Menstandarisasi semua toggle switch admin settings menjadi rounded switch dengan `bg-primary` saat aktif.
-- Membagi halaman pengaturan admin menjadi section file terpisah untuk setiap tab.
-- Memperbaiki potensi hydration mismatch pada login dengan stabilisasi form dan input.
-- Memvalidasi perubahan dengan build Next.js menggunakan terminal `cmd`.
+- [2026-07-21] Mengidentifikasi dan memperbaiki beban halaman landing page dengan memindahkan logika dari client ke server.
+- [2026-07-21] Menurunkan penggunaan client-side rendering pada halaman publik dan login.
+- [2026-07-21] Memperbaiki masalah tombol pada HeroSection yang tidak responsif di desktop.
+- [2026-07-21] Menstandarisasi semua toggle switch admin settings menjadi rounded switch dengan `bg-primary` saat aktif.
+- [2026-07-21] Membagi halaman pengaturan admin menjadi section file terpisah untuk setiap tab.
+- [2026-07-21] Memperbaiki potensi hydration mismatch pada login dengan stabilisasi form dan input.
+- [2026-07-21] Memvalidasi perubahan dengan build Next.js menggunakan terminal `cmd`.
+- [2026-07-22] Mengoptimalkan ukuran bundle JavaScript awal dengan penerapan dynamic import (`next/dynamic`) pada library chart (`recharts`).
+- [2026-07-22] Menghilangkan blocking database queries pada SSR dengan menerapkan React `<Suspense>` dan *skeleton loader* untuk streaming HTML.
+- [2026-07-22] Mempercepat otentikasi login dan registrasi dengan mengganti `bcryptjs` (pure JS) menjadi `bcrypt` (native C++) serta mengoptimalkan *salt rounds* ke 10.
+- [2026-07-22] Menambahkan indeks database pada skema Prisma untuk mempercepat pencarian data pada PostgreSQL.
+- [2026-07-22] Mengubah agregasi data manual di memori server menjadi query agregasi langsung di database (`_avg`, `_count`, `select`).
 
 ## Apa yang diubah
 
-- `src/app/page.tsx`
+- [2026-07-21] `src/app/page.tsx`
   - Diubah dari client component menjadi server component.
   - Menghilangkan `use client`, `useState`, `useEffect`, dan fetch client-side ke `/api/admin/landing-page`.
   - Mengambil konten landing page langsung dari database dengan `prisma`.
-- `src/app/layout.tsx`
+- [2026-07-21] `src/app/layout.tsx`
   - Menghapus pembungkus `AuthProvider` dari root layout.
-- `src/app/admin/layout.tsx`
+- [2026-07-21] `src/app/admin/layout.tsx`
   - Menambahkan `AuthProvider` pada layout admin.
-- `src/app/guru/layout.tsx`
+- [2026-07-21] `src/app/guru/layout.tsx`
   - Menambahkan `AuthProvider` pada layout guru.
-- `src/app/siswa/layout.tsx`
+- [2026-07-21] `src/app/siswa/layout.tsx`
   - Menambahkan `AuthProvider` pada layout siswa.
-- `src/app/dinas/layout.tsx`
+- [2026-07-21] `src/app/dinas/layout.tsx`
   - Menambahkan `AuthProvider` pada layout dinas.
-- `src/app/components/sections/HeroSection.tsx`
+- [2026-07-21] `src/app/components/sections/HeroSection.tsx`
   - Menambahkan `pointer-events-none` pada elemen dekoratif latar belakang untuk mencegah overlay memblokir interaksi klik di desktop.
-- `src/app/auth/login/page.tsx`
+- [2026-07-21] `src/app/auth/login/page.tsx`
   - Menambahkan `autoComplete="on"` ke form.
   - Menambahkan `autoComplete="email"` pada email input.
   - Menambahkan `autoComplete="current-password"` pada password input.
-- `src/app/shared/components/ui/input.tsx`
+- [2026-07-21] `src/app/shared/components/ui/input.tsx`
   - Menghapus `suppressHydrationWarning={true}` pada elemen input.
-- `src/app/admin/settings/components/section/PlatformSettingsTab.tsx`
+- [2026-07-21] `src/app/admin/settings/components/section/PlatformSettingsTab.tsx`
   - Menstandarisasi toggle switch menggunakan rounded switch UI.
-- `src/app/admin/settings/components/section/NotificationsTab.tsx`
+- [2026-07-21] `src/app/admin/settings/components/section/NotificationsTab.tsx`
   - Mengubah checkbox notifikasi menjadi rounded switch UI.
-- `src/app/api/admin/users/[id]/route.ts`
+- [2026-07-21] `src/app/api/admin/users/[id]/route.ts`
   - Mengirim email notifikasi ketika akun guru/dinas pending disetujui.
-- `src/lib/email.ts`
+- [2026-07-21] `src/lib/email.ts`
   - Menambahkan util email SMTP untuk pengiriman notifikasi.
+- [2026-07-22] `src/app/siswa/dashboard/components/section/HcsSection.tsx`
+  - Mengubah impor statis `HcsRadarChart` menjadi `next/dynamic` dengan `{ ssr: false }`.
+- [2026-07-22] `src/app/dinas/dashboard/page.tsx`
+  - Mengubah impor statis `TrendChart` menjadi `next/dynamic` dengan `{ ssr: false }`.
+- [2026-07-22] `src/app/dinas/analytics/page.tsx`
+  - Mengubah impor statis `DimensionsRadarChart`, `ComparisonBarChart`, dan `CategoryDistributionChart` menjadi `next/dynamic` dengan `{ ssr: false }`.
+- [2026-07-22] `src/app/admin/dashboard/page.tsx`
+  - Mengubah `GrowthChart` menjadi dynamic import `nextDynamic`.
+  - Ekstraksi logika data fetching ke komponen inner `AdminDashboardContent` yang dibungkus `<Suspense fallback={<AdminDashboardSkeleton />}>`.
+- [2026-07-22] `src/app/siswa/challenges/page.tsx`
+  - Ekstraksi query database ke komponen inner `ChallengesContent` yang dibungkus `<Suspense fallback={<ChallengesSkeleton />}>`.
+- [2026-07-22] `src/app/siswa/portofolio/page.tsx`
+  - Ekstraksi query database dan validasi JWT ke `PortfolioContent` yang dibungkus `<Suspense fallback={<PortfolioSkeleton />}>`.
+- [2026-07-22] `src/app/api/auth/login/route.ts`
+  - Mengganti impor `bcryptjs` dengan `bcrypt` native untuk mempercepat komparasi hash password.
+- [2026-07-22] `src/app/api/auth/register/route.ts`
+  - Mengganti impor `bcryptjs` dengan `bcrypt` native.
+  - Mengubah salt rounds pembuatan password dari `12` menjadi `10`.
+- [2026-07-22] `src/app/api/admin/users/route.ts`
+  - Mengganti impor `bcryptjs` dengan `bcrypt` native dan menurunkan salt rounds ke `10`.
+- [2026-07-22] `prisma/schema.prisma`
+  - Menambahkan indeks `@@index([role])` pada model `User`.
+  - Menambahkan indeks `@@index([status])`, `@@index([userId])`, `@@index([challengeId])` pada model `Submission`.
+- [2026-07-22] `src/app/api/dinas/stats/route.ts`
+  - Mendelegasikan hitungan dan nilai rata-rata HCS ke database via `prisma.user.count` dan `prisma.humanCapitalScore.aggregate`.
+  - Menggunakan `select` terbatas pada pencarian profil siswa untuk menghemat memori.
+- [2026-07-22] `src/app/api/dinas/analytics/route.ts`
+  - Menggunakan `prisma.humanCapitalScore.aggregate` untuk menghitung rata-rata 5 dimensi HCS secara langsung di PostgreSQL.
+  - Membatasi payload query `submissions` hanya pada kolom `category`.
 
 ## Apa yang ditambahkan
 
-- Penanganan server-side data pada landing page untuk mengurangi beban client.
-- `AuthProvider` hanya di area layout yang memerlukan autentikasi.
-- Rounded toggle switch UI pada admin settings.
-- Autocomplete form login yang lebih stabil.
-- Mekanisme notifikasi email approval untuk akun guru/dinas.
-- Dokumentasi ringkas di file `task-summary.md`.
+- [2026-07-21] Penanganan server-side data pada landing page untuk mengurangi beban client.
+- [2026-07-21] `AuthProvider` hanya di area layout yang memerlukan autentikasi.
+- [2026-07-21] Rounded toggle switch UI pada admin settings.
+- [2026-07-21] Autocomplete form login yang lebih stabil.
+- [2026-07-21] Mekanisme notifikasi email approval untuk akun guru/dinas.
+- [2026-07-21] Dokumentasi ringkas di file `task-summary.md`.
+- [2026-07-22] Komponen skeleton loader (`AdminDashboardSkeleton`, `ChallengesSkeleton`, `PortfolioSkeleton`) untuk streaming UI.
+- [2026-07-22] Dependensi `bcrypt` (native) dan tipe `@types/bcrypt` serta `@types/nodemailer`.
+- [2026-07-22] Indeks database pada `User` dan `Submission` melalui `prisma db push`.
 
 ## Apa yang dihapus
 
-- `AuthProvider` dari `src/app/layout.tsx` agar tidak diterapkan secara global.
-- `suppressHydrationWarning={true}` pada `src/app/shared/components/ui/input.tsx`.
+- [2026-07-21] `AuthProvider` dari `src/app/layout.tsx` agar tidak diterapkan secara global.
+- [2026-07-21] `suppressHydrationWarning={true}` pada `src/app/shared/components/ui/input.tsx`.
+- [2026-07-22] Ketergantungan pada `bcryptjs` pure JS pada modul otentikasi utama.
+- [2026-07-22] Query pencarian penuh seluruh objek siswa (*in-memory aggregation*) pada API statistik dan analitik dinas.
 
 ## Hasil
 
-- Halaman landing page lebih ringan dan lebih cepat karena data diambil dari server.
-- Form login lebih stabil terhadap hydration mismatch.
-- Toggle di admin settings konsisten secara visual.
-- Pengguna desktop bisa berinteraksi kembali dengan tombol HeroSection.
-- Aplikasi lebih modular dengan section file pengaturan admin yang terpisah.
+- [2026-07-21] Halaman landing page lebih ringan dan lebih cepat karena data diambil dari server.
+- [2026-07-21] Form login lebih stabil terhadap hydration mismatch.
+- [2026-07-21] Toggle di admin settings konsisten secara visual.
+- [2026-07-21] Pengguna desktop bisa berinteraksi kembali dengan tombol HeroSection.
+- [2026-07-21] Aplikasi lebih modular dengan section file pengaturan admin yang terpisah.
+- [2026-07-22] Ukuran JavaScript awal lebih kecil karena library chart (`recharts`) dimuat secara *lazy-loading*.
+- [2026-07-22] Rendering halaman tantangan, portofolio, dan admin dashboard menjadi non-blocking menggunakan React `<Suspense>` streaming.
+- [2026-07-22] Verifikasi login dan pendaftaran akun menjadi instan dengan native `bcrypt`.
+- [2026-07-22] Query API statistik & analitik dinas berjalan sangat cepat dan hemat memori karena kalkulasi dilakukan langsung oleh PostgreSQL.

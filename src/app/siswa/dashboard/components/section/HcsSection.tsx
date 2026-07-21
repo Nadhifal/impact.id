@@ -3,7 +3,10 @@
 import React from "react";
 import { TrendingUp } from "lucide-react";
 import { Card } from "@/app/shared/components/ui/card";
-import { HcsRadarChart } from "../ui/HcsRadarChart";
+import dynamic from "next/dynamic";
+
+const HcsRadarChart = dynamic(() => import("../ui/HcsRadarChart").then(mod => mod.HcsRadarChart), { ssr: false });
+
 
 interface HcsSectionProps {
   scores: { SI: number; LD: number; IN: number; RL: number };

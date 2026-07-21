@@ -10,26 +10,37 @@ export async function GET(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    // All students with related data
-    const students = await prisma.user.findMany({
-      where: { role: "STUDENT" },
-      include: {
-        humanCapitalScore: true,
-        profile: true,
-        submissions: true,
-      },
+    // Get counts and averages directly from DB
+    const [totalSiswa, completedSubmissions, totalChallenges, avgHcsAgg] = await Promise.all([
+      prisma.user.count({ where: { role: "STUDENT" } }),
+      prisma.submission.count({ where: { status: "COMPLETED" } }),
+      prisma.challenge.count(),
+      prisma.humanCapitalScore.aggregate({
+        _avg: { totalScore: true },
+        _count: { userId: true },
+      }),
+    ]);
+
+    const avgHCS = avgHcsAgg._avg.totalScore ?? 0;
+
+    // Retrieve only necessary fields for school grouping
+    const studentsData = await prisma.profile.findMany({
+      where: { user: { role: "STUDENT" } },
+      select: {
+        schoolName: true,
+        city: true,
+        user: {
+          select: {
+            humanCapitalScore: { select: { totalScore: true } },
+            _count: {
+              select: {
+                submissions: { where: { status: "COMPLETED" } }
+              }
+            }
+          }
+        }
+      }
     });
-
-    // Aggregate stats
-    const totalSiswa = students.length;
-    const completedSubmissions = await prisma.submission.count({ where: { status: "COMPLETED" } });
-    const totalChallenges = await prisma.challenge.count();
-
-    // Average HCS
-    const studentsWithHCS = students.filter(s => s.humanCapitalScore);
-    const avgHCS = studentsWithHCS.length > 0
-      ? studentsWithHCS.reduce((sum, s) => sum + (s.humanCapitalScore?.totalScore ?? 0), 0) / studentsWithHCS.length
-      : 0;
 
     // Group students by school for monitoring table
     const schoolMap = new Map<string, {
@@ -42,9 +53,9 @@ export async function GET(req: NextRequest) {
       type: string;
     }>();
 
-    for (const student of students) {
-      const schoolName = student.profile?.schoolName ?? "Tidak Diketahui";
-      const city = student.profile?.city ?? "—";
+    for (const p of studentsData) {
+      const schoolName = p.schoolName ?? "Tidak Diketahui";
+      const city = p.city ?? "—";
 
       if (!schoolMap.has(schoolName)) {
         // Detect school type from name
@@ -67,9 +78,9 @@ export async function GET(req: NextRequest) {
 
       const school = schoolMap.get(schoolName)!;
       school.activeStudents++;
-      school.completedChallenges += student.submissions.filter(s => s.status === "COMPLETED").length;
-      if (student.humanCapitalScore) {
-        school.totalHCS += student.humanCapitalScore.totalScore;
+      school.completedChallenges += p.user?._count?.submissions ?? 0;
+      if (p.user?.humanCapitalScore) {
+        school.totalHCS += p.user.humanCapitalScore.totalScore;
         school.hcsCount++;
       }
     }

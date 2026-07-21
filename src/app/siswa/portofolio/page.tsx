@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import {
   bioProfile,
   summaryStats,
@@ -50,7 +50,7 @@ function getProjectImage(seed: string) {
 }
 
 // Server Component — query Prisma directly using logged-in user
-export default async function SiswaPortfolioPage() {
+async function PortfolioContent() {
   let liveCredentials: typeof verifiedCredentials = [];
   let liveBio = bioProfile;
   let liveStats = summaryStats;
@@ -213,5 +213,27 @@ export default async function SiswaPortfolioPage() {
         />
       </div>
     </div>
+  );
+}
+
+function PortfolioSkeleton() {
+  return (
+    <div className="py-10 px-6 md:px-12 max-w-7xl mx-auto space-y-8 animate-pulse">
+      {/* Bio Card Skeleton */}
+      <div className="h-44 bg-slate-100 rounded-3xl border border-slate-200" />
+      {/* Main Grid Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-4 h-96 bg-slate-100 rounded-3xl border border-slate-200" />
+        <div className="lg:col-span-8 h-96 bg-slate-100 rounded-3xl border border-slate-200" />
+      </div>
+    </div>
+  );
+}
+
+export default function SiswaPortfolioPage() {
+  return (
+    <Suspense fallback={<PortfolioSkeleton />}>
+      <PortfolioContent />
+    </Suspense>
   );
 }

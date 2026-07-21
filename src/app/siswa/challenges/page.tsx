@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { SiswaChallengesClient } from "./SiswaChallengesClient";
 import {
@@ -29,8 +29,24 @@ const CATEGORY_IMAGES: Record<string, string> = {
     "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=300&h=180&q=80",
 };
 
-// Server Component — directly queries Prisma (no HTTP layer, always fresh)
-export default async function SiswaChallengesPage() {
+// Skeleton Component
+function ChallengesSkeleton() {
+  return (
+    <div className="py-10 px-6 md:px-12 max-w-7xl mx-auto space-y-8 animate-pulse">
+      {/* Featured Challenge Skeleton */}
+      <div className="h-96 bg-slate-100 rounded-3xl border border-slate-200" />
+      {/* Three grid cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-64 bg-slate-100 rounded-2xl border border-slate-200" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Inner Server Component that queries database
+async function ChallengesContent() {
   let dbChallenges: Awaited<ReturnType<typeof prisma.challenge.findMany>> = [];
 
   try {
@@ -82,5 +98,13 @@ export default async function SiswaChallengesPage() {
       smartRecommendation={dummyRec}
       specialChallenge={dummySpecial}
     />
+  );
+}
+
+export default function SiswaChallengesPage() {
+  return (
+    <Suspense fallback={<ChallengesSkeleton />}>
+      <ChallengesContent />
+    </Suspense>
   );
 }

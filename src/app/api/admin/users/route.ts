@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 // GET /api/admin/users — List all users with KPI counts
 export async function GET() {
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword, role }
     });

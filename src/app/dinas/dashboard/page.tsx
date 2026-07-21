@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { KPICards } from "./components/section/KPICards";
-import { TrendChart } from "./components/section/TrendChart";
 import { ImpactOverviewCard } from "./components/section/ImpactOverviewCard";
+import dynamic from "next/dynamic";
+
+const TrendChart = dynamic(() => import("./components/section/TrendChart").then(mod => mod.TrendChart), { ssr: false });
 import { MonitoringTable } from "./components/section/MonitoringTable";
 import { Plus } from "lucide-react";
 import type { KPICardData, TrendItem, SchoolMonitorItem } from "./data";

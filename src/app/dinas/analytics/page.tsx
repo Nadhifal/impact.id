@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { Download, RefreshCw } from "lucide-react";
 import { AnalyticsFilters } from "./components/section/AnalyticsFilters";
-import { DimensionsRadarChart } from "./components/section/DimensionsRadarChart";
-import { ComparisonBarChart } from "./components/section/ComparisonBarChart";
-import { CategoryDistributionChart } from "./components/section/CategoryDistributionChart";
 import { RegionInsights } from "./components/section/RegionInsights";
+import dynamic from "next/dynamic";
+
+const DimensionsRadarChart = dynamic(() => import("./components/section/DimensionsRadarChart").then(mod => mod.DimensionsRadarChart), { ssr: false });
+const ComparisonBarChart = dynamic(() => import("./components/section/ComparisonBarChart").then(mod => mod.ComparisonBarChart), { ssr: false });
+const CategoryDistributionChart = dynamic(() => import("./components/section/CategoryDistributionChart").then(mod => mod.CategoryDistributionChart), { ssr: false });
 
 interface AnalyticsData {
   dimensionsRadarData: { subject: string; "RATA-RATA": number; "BENCHMARK (85)": number }[];
