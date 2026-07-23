@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Button } from "@/app/shared/components/ui/button";
 import { Card } from "@/app/shared/components/ui/card";
 import { VerificationStatusCard } from "../ui/VerificationStatusCard";
@@ -21,10 +22,12 @@ export function VerificationSection({ verification = defaultVerification }: { ve
           <VerificationStatusCard verification={verification} />
 
           {/* CTA Button */}
-          <Button variant="primary" className="w-full py-3.5 text-sm font-semibold group bg-[#00473e] text-white">
-            Verifikasi Sekarang
-            <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <Link href="/verify" className="w-full">
+            <Button variant="primary" className="w-full py-3.5 text-sm font-semibold group bg-[#00473e] text-white cursor-pointer">
+              Verifikasi Sekarang
+              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
 
           {/* Divider */}
           <div className="flex items-center justify-center gap-4">
@@ -34,10 +37,12 @@ export function VerificationSection({ verification = defaultVerification }: { ve
           </div>
 
           {/* Secondary CTA */}
-          <Button variant="outline" className="w-full py-3.5 text-sm font-semibold border-2 border-[#00473e] text-[#00473e] hover:bg-[#00473e]/5">
-            <QrCode className="mr-2 w-4 h-4" />
-            Scan QR Code
-          </Button>
+          <Link href="/verify" className="w-full">
+            <Button variant="outline" className="w-full py-3.5 text-sm font-semibold border-2 border-[#00473e] text-[#00473e] hover:bg-[#00473e]/5 cursor-pointer">
+              <QrCode className="mr-2 w-4 h-4" />
+              Scan QR Code
+            </Button>
+          </Link>
         </Card>
       </div>
     </section>

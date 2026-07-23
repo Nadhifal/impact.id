@@ -37,7 +37,7 @@ export default async function DetailSertifikatPage({
 
       if (sub) {
         currentDetail = {
-          credentialId: sub.id.substring(0, 8).toUpperCase(),
+          credentialId: sub.id,
           holderName: sub.user.name || "Siswa",
           institution: sub.user.profile?.schoolName || "Sekolah Mitra",
           challengeTitle: sub.challenge.title,

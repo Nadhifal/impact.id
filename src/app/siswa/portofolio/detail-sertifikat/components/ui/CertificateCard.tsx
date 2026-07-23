@@ -31,7 +31,16 @@ export const CertificateCard = React.forwardRef<HTMLDivElement, CertificateCardP
     },
     ref
   ) {
-    const verifyUrl = `https://impact.id/verify/${credentialId}`;
+    const [origin, setOrigin] = React.useState("");
+
+    React.useEffect(() => {
+      if (typeof window !== "undefined") {
+        setOrigin(window.location.origin);
+      }
+    }, []);
+
+    const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || "https://impact.id";
+    const verifyUrl = `${baseUrl}/verify/${credentialId}`;
 
     return (
       <div

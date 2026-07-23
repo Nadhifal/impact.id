@@ -14,6 +14,9 @@
 - [2026-07-22] Mempercepat otentikasi login dan registrasi dengan mengganti `bcryptjs` (pure JS) menjadi `bcrypt` (native C++) serta mengoptimalkan *salt rounds* ke 10.
 - [2026-07-22] Menambahkan indeks database pada skema Prisma untuk mempercepat pencarian data pada PostgreSQL.
 - [2026-07-22] Mengubah agregasi data manual di memori server menjadi query agregasi langsung di database (`_avg`, `_count`, `select`).
+- [2026-07-24] Membuat Halaman Verifikasi Sertifikat Publik (`/verify/[id]` dan `/verify`) yang dapat diakses secara terbuka tanpa perlu login.
+- [2026-07-24] Memperbarui Barcode / QR Code pada sertifikat agar dinamis (`window.location.origin`) dan secara akurat mengarahkan scanner hp ke halaman verifikasi sertifikat publik.
+- [2026-07-24] Mengganti data statis (hardcoded) pada seluruh chart dan tabel di dashboard admin dengan data real yang diambil langsung dari database PostgreSQL via Prisma.
 
 ## Apa yang diubah
 
@@ -76,6 +79,12 @@
 - [2026-07-22] `src/app/api/dinas/analytics/route.ts`
   - Menggunakan `prisma.humanCapitalScore.aggregate` untuk menghitung rata-rata 5 dimensi HCS secara langsung di PostgreSQL.
   - Membatasi payload query `submissions` hanya pada kolom `category`.
+- [2026-07-24] `src/app/siswa/portofolio/detail-sertifikat/components/ui/CertificateCard.tsx`
+  - Mengubah penentuan `verifyUrl` agar mendeteksi `window.location.origin` secara dinamis di browser sehingga QR Code dapat di-scan secara nyata pada server lokal maupun production.
+- [2026-07-24] `src/app/siswa/portofolio/detail-sertifikat/page.tsx`
+  - Mengirimkan `sub.id` utuh sebagai `credentialId` agar QR Code mengodekan ID yang dapat dicari di database.
+- [2026-07-24] `src/app/components/sections/VerificationSection.tsx`
+  - Menghubungkan tombol "Verifikasi Sekarang" dan "Scan QR Code" di Landing Page langsung ke rute verifikasi publik `/verify`.
 
 ## Apa yang ditambahkan
 
@@ -88,6 +97,9 @@
 - [2026-07-22] Komponen skeleton loader (`AdminDashboardSkeleton`, `ChallengesSkeleton`, `PortfolioSkeleton`) untuk streaming UI.
 - [2026-07-22] Dependensi `bcrypt` (native) dan tipe `@types/bcrypt` serta `@types/nodemailer`.
 - [2026-07-22] Indeks database pada `User` dan `Submission` melalui `prisma db push`.
+- [2026-07-24] Halaman Verifikasi Publik Sertifikat di `src/app/verify/[id]/page.tsx` untuk menampilkan bukti keabsahan sertifikat, perincian siswa, serta rekaman bukti blockchain secara terbuka.
+- [2026-07-24] Halaman Pencarian Verifikasi Publik di `src/app/verify/page.tsx` untuk melakukan pencarian ID sertifikat secara publik.
+- [2026-07-24] Tipe `ActivityLogItem` dan `RoleGrowth` / `MonthlyGrowth` sebagai kontrak data antar Server Component dan Client Chart Component pada dashboard admin.
 
 ## Apa yang dihapus
 
@@ -95,6 +107,22 @@
 - [2026-07-21] `suppressHydrationWarning={true}` pada `src/app/shared/components/ui/input.tsx`.
 - [2026-07-22] Ketergantungan pada `bcryptjs` pure JS pada modul otentikasi utama.
 - [2026-07-22] Query pencarian penuh seluruh objek siswa (*in-memory aggregation*) pada API statistik dan analitik dinas.
+- [2026-07-24] Hardcoded URL `https://impact.id` pada QR code generator sertifikat.
+- [2026-07-24] `src/app/admin/dashboard/page.tsx`
+  - Menambahkan query `user.groupBy(role)` untuk data distribusi user per role.
+  - Menambahkan query `user.findMany` 12 bulan terakhir dan agregasi per bulan untuk tren registrasi.
+  - Menambahkan query `adminLog.findMany` 8 terbaru beserta relasi nama admin.
+  - Meneruskan semua data sebagai props ke `GrowthChart` dan `ActivityLogs`.
+- [2026-07-24] `src/app/admin/dashboard/components/section/GrowthChart.tsx`
+  - Dihapus impor data statis `userGrowthData` dari `data.ts`.
+  - Ditambahkan props `byRole: RoleGrowth[]` dan `byMonth: MonthlyGrowth[]`.
+  - Ditambahkan mode tampilan kedua: **Line Chart bulanan** (12 bulan terakhir) dengan selector dropdown antara "Per Role" dan "Bulanan".
+  - Menggunakan tipe unified `ChartEntry` agar recharts tidak gagal saat type-checking.
+- [2026-07-24] `src/app/admin/dashboard/components/section/ActivityLogs.tsx`
+  - Dihapus impor data statis `activityLogsData` dari `data.ts`.
+  - Ditambahkan props `logs: ActivityLogItem[]` yang berisi log aktivitas nyata dari tabel `AdminLog`.
+  - Ditambahkan *empty state* jika belum ada log di database.
+  - Waktu ditampilkan secara relatif otomatis ("Baru saja", "X menit/jam/hari yang lalu").
 
 ## Hasil
 
@@ -107,3 +135,7 @@
 - [2026-07-22] Rendering halaman tantangan, portofolio, dan admin dashboard menjadi non-blocking menggunakan React `<Suspense>` streaming.
 - [2026-07-22] Verifikasi login dan pendaftaran akun menjadi instan dengan native `bcrypt`.
 - [2026-07-22] Query API statistik & analitik dinas berjalan sangat cepat dan hemat memori karena kalkulasi dilakukan langsung oleh PostgreSQL.
+- [2026-07-24] Barcode / QR Code pada sertifikat fisik/PDF dan tampilan web berfungsi penuh saat di-scan oleh kamera smartphone.
+- [2026-07-24] Halaman verifikasi publik `/verify/[id]` menampilkan data resmi dari Prisma dan bukti keaslian di blockchain secara publik tanpa mengharuskan login.
+- [2026-07-24] Chart distribusi user per role dan tren bulanan pada dashboard admin kini menampilkan angka nyata dari database, bukan data fiktif.
+- [2026-07-24] Tabel log aktivitas admin menampilkan riwayat aksi nyata dari tabel `AdminLog` dengan waktu relatif otomatis.

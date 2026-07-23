@@ -3,11 +3,14 @@ import { Download, Plus, RefreshCw } from "lucide-react";
 import { AdminKPICards } from "./components/section/AdminKPICards";
 import { ActionRequired } from "./components/section/ActionRequired";
 import { ActivityLogs } from "./components/section/ActivityLogs";
+import type { ActivityLogItem } from "./components/section/ActivityLogs";
 import { prisma } from "@/lib/prisma";
 import { ApiAdminStats } from "@/lib/api";
 import nextDynamic from "next/dynamic";
 
-const GrowthChart = nextDynamic(() => import("./components/section/GrowthChart").then(mod => mod.GrowthChart));
+const GrowthChart = nextDynamic(
+  () => import("./components/section/GrowthChart").then((mod) => mod.GrowthChart)
+);
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +35,34 @@ function AdminDashboardSkeleton() {
   );
 }
 
+// Helper: format relative time in Bahasa Indonesia
+function relativeTime(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return "Baru saja";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} menit yang lalu`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} jam yang lalu`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay} hari yang lalu`;
+}
+
+// Helper: Bahasa Indonesia month name
+const ID_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Ags", "Sep", "Okt", "Nov", "Des",
+];
+
 // Inner Server Component that handles DB queries
 async function AdminDashboardContent() {
   let stats: ApiAdminStats | null = null;
+  let byRole: { name: string; count: number }[] = [];
+  let byMonth: { month: string; count: number }[] = [];
+  let logs: ActivityLogItem[] = [];
 
   try {
+    // ── KPI queries ──────────────────────────────────────────────────────
     const [totalChallenges, totalStudents, totalSubmissions, completedSubmissions] =
       await Promise.all([
         prisma.challenge.count(),
@@ -75,8 +101,65 @@ async function AdminDashboardContent() {
         _count: { id: s._count.id },
       })),
     };
+
+    // ── GrowthChart: user count per role ─────────────────────────────────
+    const roleGroups = await prisma.user.groupBy({
+      by: ["role"],
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+    });
+
+    const ROLE_LABEL: Record<string, string> = {
+      STUDENT: "Siswa",
+      TEACHER: "Guru",
+      DINAS: "Dinas",
+      ADMIN: "Admin",
+    };
+    byRole = roleGroups.map((r) => ({
+      name: ROLE_LABEL[r.role] ?? r.role,
+      count: r._count.id,
+    }));
+
+    // ── GrowthChart: new users per month (last 12 months) ────────────────
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+    twelveMonthsAgo.setDate(1);
+    twelveMonthsAgo.setHours(0, 0, 0, 0);
+
+    const recentUsers = await prisma.user.findMany({
+      where: { createdAt: { gte: twelveMonthsAgo } },
+      select: { createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    // Aggregate by "MMM YYYY"
+    const monthMap = new Map<string, number>();
+    recentUsers.forEach((u) => {
+      const d = new Date(u.createdAt);
+      const key = `${ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+      monthMap.set(key, (monthMap.get(key) ?? 0) + 1);
+    });
+    byMonth = Array.from(monthMap.entries()).map(([month, count]) => ({
+      month,
+      count,
+    }));
+
+    // ── ActivityLogs: latest 8 admin logs ────────────────────────────────
+    const adminLogs = await prisma.adminLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      include: { admin: { select: { name: true } } },
+    });
+
+    logs = adminLogs.map((log) => ({
+      id: log.id,
+      adminName: log.admin.name,
+      adminLetter: log.admin.name.charAt(0).toUpperCase(),
+      activity: log.activity,
+      time: relativeTime(new Date(log.createdAt)),
+    }));
   } catch {
-    // DB unavailable — stats stays null, components will show fallback values
+    // DB unavailable — all stay at their defaults (empty arrays / null)
   }
 
   return (
@@ -87,7 +170,7 @@ async function AdminDashboardContent() {
       {/* Growth Chart & Action Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <GrowthChart />
+          <GrowthChart byRole={byRole} byMonth={byMonth} />
         </div>
         <div className="lg:col-span-1">
           <ActionRequired stats={stats} />
@@ -95,7 +178,7 @@ async function AdminDashboardContent() {
       </div>
 
       {/* Activity Logs Table */}
-      <ActivityLogs />
+      <ActivityLogs logs={logs} />
     </>
   );
 }
