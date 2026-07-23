@@ -17,6 +17,8 @@
 - [2026-07-24] Membuat Halaman Verifikasi Sertifikat Publik (`/verify/[id]` dan `/verify`) yang dapat diakses secara terbuka tanpa perlu login.
 - [2026-07-24] Memperbarui Barcode / QR Code pada sertifikat agar dinamis (`window.location.origin`) dan secara akurat mengarahkan scanner hp ke halaman verifikasi sertifikat publik.
 - [2026-07-24] Mengganti data statis (hardcoded) pada seluruh chart dan tabel di dashboard admin dengan data real yang diambil langsung dari database PostgreSQL via Prisma.
+- [2026-07-24] Memperbaiki bug QR Code 404 di Vercel — URL QR code kini dibangun dari `headers()` di Server Component agar selalu menggunakan domain deployment yang benar (bukan hardcoded atau kosong).
+- [2026-07-24] Menambahkan halaman "Sertifikat Tidak Ditemukan" yang jelas pada `/verify/[id]` jika ID tidak ada di database.
 
 ## Apa yang diubah
 
@@ -100,6 +102,7 @@
 - [2026-07-24] Halaman Verifikasi Publik Sertifikat di `src/app/verify/[id]/page.tsx` untuk menampilkan bukti keabsahan sertifikat, perincian siswa, serta rekaman bukti blockchain secara terbuka.
 - [2026-07-24] Halaman Pencarian Verifikasi Publik di `src/app/verify/page.tsx` untuk melakukan pencarian ID sertifikat secara publik.
 - [2026-07-24] Tipe `ActivityLogItem` dan `RoleGrowth` / `MonthlyGrowth` sebagai kontrak data antar Server Component dan Client Chart Component pada dashboard admin.
+- [2026-07-24] Prop `verifyUrl` pada `CertificateCard` dan `CertificateDetailSection` sebagai mekanisme server-side URL injection untuk QR Code.
 
 ## Apa yang dihapus
 
@@ -108,6 +111,7 @@
 - [2026-07-22] Ketergantungan pada `bcryptjs` pure JS pada modul otentikasi utama.
 - [2026-07-22] Query pencarian penuh seluruh objek siswa (*in-memory aggregation*) pada API statistik dan analitik dinas.
 - [2026-07-24] Hardcoded URL `https://impact.id` pada QR code generator sertifikat.
+- [2026-07-24] Data dummy / fiktif (nama, sekolah, data palsu) yang digunakan sebagai fallback pada halaman `/verify/[id]` saat ID tidak ditemukan di database.
 - [2026-07-24] `src/app/admin/dashboard/page.tsx`
   - Menambahkan query `user.groupBy(role)` untuk data distribusi user per role.
   - Menambahkan query `user.findMany` 12 bulan terakhir dan agregasi per bulan untuk tren registrasi.
@@ -123,6 +127,19 @@
   - Ditambahkan props `logs: ActivityLogItem[]` yang berisi log aktivitas nyata dari tabel `AdminLog`.
   - Ditambahkan *empty state* jika belum ada log di database.
   - Waktu ditampilkan secara relatif otomatis ("Baru saja", "X menit/jam/hari yang lalu").
+- [2026-07-24] `src/app/siswa/portofolio/detail-sertifikat/page.tsx`
+  - Menambahkan import `headers` dari `next/headers`.
+  - Membangun `baseUrl` server-side dari HTTP request header `host` — bekerja akurat di localhost, Vercel preview, maupun production.
+  - Meneruskan `verifyUrl` lengkap sebagai prop ke `CertificateDetailSection`.
+- [2026-07-24] `src/app/siswa/portofolio/detail-sertifikat/components/section/CertificateDetailSection.tsx`
+  - Menambahkan prop `verifyUrl: string` dan meneruskannya ke `CertificateCard`.
+- [2026-07-24] `src/app/siswa/portofolio/detail-sertifikat/components/ui/CertificateCard.tsx`
+  - Menambahkan prop opsional `verifyUrl?: string` — jika disediakan server, langsung dipakai sebagai nilai QR code tanpa menunggu `useEffect`.
+  - Menghapus dependensi `NEXT_PUBLIC_VERCEL_URL` dan fallback yang tidak reliabel.
+- [2026-07-24] `src/app/verify/[id]/page.tsx`
+  - Mengganti `findFirst` dengan `findUnique` untuk pencarian tepat berdasarkan UUID.
+  - Menghapus seluruh data dummy fallback (nama, sekolah, dan data fiktif).
+  - Menambahkan halaman *Not Found* dengan `ShieldX` icon, pesan panduan, dan tombol aksi jika ID tidak ditemukan di database.
 
 ## Hasil
 
@@ -139,3 +156,5 @@
 - [2026-07-24] Halaman verifikasi publik `/verify/[id]` menampilkan data resmi dari Prisma dan bukti keaslian di blockchain secara publik tanpa mengharuskan login.
 - [2026-07-24] Chart distribusi user per role dan tren bulanan pada dashboard admin kini menampilkan angka nyata dari database, bukan data fiktif.
 - [2026-07-24] Tabel log aktivitas admin menampilkan riwayat aksi nyata dari tabel `AdminLog` dengan waktu relatif otomatis.
+- [2026-07-24] Bug QR Code 404 di Vercel telah diperbaiki — QR code kini selalu encode URL domain Vercel yang tepat karena URL dibangun dari `headers()` di server, bukan dari `window.location.origin` client-side yang belum tersedia saat render.
+- [2026-07-24] Halaman `/verify/[id]` menampilkan pesan "Sertifikat Tidak Ditemukan" yang jelas dan profesional jika ID tidak ada di database, menghilangkan potensi miskomunikasi dari data dummy yang terlihat valid.
