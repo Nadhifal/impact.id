@@ -9,9 +9,10 @@ import { CertificateDetail, BlockchainStep } from "../../data";
 interface CertificateDetailSectionProps {
   detail: CertificateDetail;
   steps: BlockchainStep[];
+  verifyUrl: string;
 }
 
-export function CertificateDetailSection({ detail, steps }: CertificateDetailSectionProps) {
+export function CertificateDetailSection({ detail, steps, verifyUrl }: CertificateDetailSectionProps) {
   const certRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = async () => {
@@ -84,6 +85,7 @@ export function CertificateDetailSection({ detail, steps }: CertificateDetailSec
           validatedBy={detail.validatedBy}
           location={detail.location}
           impactScore={detail.impactScore}
+          verifyUrl={verifyUrl}
         />
 
         {/* Right — Blockchain sidebar with download trigger */}

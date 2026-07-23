@@ -1,4 +1,5 @@
 import React from "react";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { ChevronLeft, Bell } from "lucide-react";
 import { CertificateDetailSection } from "./components/section/CertificateDetailSection";
@@ -19,6 +20,13 @@ export default async function DetailSertifikatPage({
   searchParams
 }: PageProps) {
   const { id } = await searchParams;
+
+  // Resolve the public base URL from the incoming request host.
+  // This works correctly on both Vercel (production / preview) and localhost.
+  const headersList = await headers();
+  const host = headersList.get("host") || "impact.id";
+  const proto = host.startsWith("localhost") ? "http" : "https";
+  const baseUrl = `${proto}://${host}`;
 
   let currentDetail = certificateDetail;
 
@@ -80,6 +88,7 @@ export default async function DetailSertifikatPage({
         <CertificateDetailSection
           detail={currentDetail}
           steps={blockchainSteps}
+          verifyUrl={`${baseUrl}/verify/${currentDetail.credentialId}`}
         />
       </main>
     </div>

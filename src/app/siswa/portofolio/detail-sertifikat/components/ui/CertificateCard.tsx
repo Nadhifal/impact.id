@@ -14,6 +14,8 @@ interface CertificateCardProps {
   validatedBy: string;
   location: string;
   impactScore: number;
+  /** Full verify URL pre-computed server-side — avoids useEffect race condition */
+  verifyUrl?: string;
 }
 
 export const CertificateCard = React.forwardRef<HTMLDivElement, CertificateCardProps>(
@@ -28,6 +30,7 @@ export const CertificateCard = React.forwardRef<HTMLDivElement, CertificateCardP
       validatedBy,
       location,
       impactScore,
+      verifyUrl: verifyUrlProp,
     },
     ref
   ) {
@@ -39,8 +42,11 @@ export const CertificateCard = React.forwardRef<HTMLDivElement, CertificateCardP
       }
     }, []);
 
-    const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || "https://impact.id";
-    const verifyUrl = `${baseUrl}/verify/${credentialId}`;
+    // Prefer server-computed URL prop (most reliable on Vercel).
+    // Fall back to window.location.origin (local dev), then hard-coded domain.
+    const resolvedVerifyUrl =
+      verifyUrlProp ||
+      (origin ? `${origin}/verify/${credentialId}` : `https://impact.id/verify/${credentialId}`);
 
     return (
       <div
@@ -102,7 +108,7 @@ export const CertificateCard = React.forwardRef<HTMLDivElement, CertificateCardP
             <div className="flex flex-col items-center gap-2">
               <div className="p-2.5 border border-zinc-100 rounded-xl bg-white shadow-sm">
                 <QRCodeSVG
-                  value={verifyUrl}
+                  value={resolvedVerifyUrl}
                   size={80}
                   fgColor="#00473e"
                   bgColor="#ffffff"
