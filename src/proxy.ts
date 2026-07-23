@@ -11,10 +11,11 @@ const PUBLIC_PATHS = [
   "/auth/register/step-2",
   "/auth/register/step-3",
   "/auth/register/pending",
+  "/verify",
 ];
 
 // Paths that start with these prefixes are also public
-const PUBLIC_PREFIXES = ["/api/auth/", "/_next/", "/favicon"];
+const PUBLIC_PREFIXES = ["/api/auth/", "/_next/", "/favicon", "/verify/"];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
