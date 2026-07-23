@@ -19,6 +19,7 @@
 - [2026-07-24] Mengganti data statis (hardcoded) pada seluruh chart dan tabel di dashboard admin dengan data real yang diambil langsung dari database PostgreSQL via Prisma.
 - [2026-07-24] Memperbaiki bug QR Code 404 di Vercel — URL QR code kini dibangun dari `headers()` di Server Component agar selalu menggunakan domain deployment yang benar (bukan hardcoded atau kosong).
 - [2026-07-24] Menambahkan halaman "Sertifikat Tidak Ditemukan" yang jelas pada `/verify/[id]` jika ID tidak ada di database.
+- [2026-07-24] **Fix kritis:** Menambahkan `/verify` dan `/verify/` ke daftar `PUBLIC_PATHS` dan `PUBLIC_PREFIXES` di middleware (`proxy.ts`) agar halaman verifikasi publik dapat diakses tanpa login — sebelumnya semua user yang scan QR Code tanpa akun di-redirect paksa ke halaman login.
 
 ## Apa yang diubah
 
@@ -140,6 +141,10 @@
   - Mengganti `findFirst` dengan `findUnique` untuk pencarian tepat berdasarkan UUID.
   - Menghapus seluruh data dummy fallback (nama, sekolah, dan data fiktif).
   - Menambahkan halaman *Not Found* dengan `ShieldX` icon, pesan panduan, dan tombol aksi jika ID tidak ditemukan di database.
+- [2026-07-24] `src/proxy.ts` (Middleware)
+  - Menambahkan `"/verify"` ke array `PUBLIC_PATHS`.
+  - Menambahkan `"/verify/"` ke array `PUBLIC_PREFIXES` agar seluruh sub-rute dinamis `/verify/[id]` ikut dianggap publik.
+  - Sebelumnya: user tanpa sesi login yang scan QR Code di-redirect ke `/auth/login` (bukan membuka halaman verifikasi).
 
 ## Hasil
 
@@ -158,3 +163,4 @@
 - [2026-07-24] Tabel log aktivitas admin menampilkan riwayat aksi nyata dari tabel `AdminLog` dengan waktu relatif otomatis.
 - [2026-07-24] Bug QR Code 404 di Vercel telah diperbaiki — QR code kini selalu encode URL domain Vercel yang tepat karena URL dibangun dari `headers()` di server, bukan dari `window.location.origin` client-side yang belum tersedia saat render.
 - [2026-07-24] Halaman `/verify/[id]` menampilkan pesan "Sertifikat Tidak Ditemukan" yang jelas dan profesional jika ID tidak ada di database, menghilangkan potensi miskomunikasi dari data dummy yang terlihat valid.
+- [2026-07-24] **Fix kritis:** Siapapun yang scan QR Code sertifikat (termasuk yang tidak punya akun) kini langsung melihat halaman verifikasi publik tanpa hambatan redirect ke login.
