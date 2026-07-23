@@ -11,7 +11,9 @@ import {
   ArrowLeft,
   Award,
   Lock,
-  Building2
+  Building2,
+  ShieldX,
+  AlertCircle,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/app/components/layouts/navbar";
@@ -19,7 +21,7 @@ import { GlobalFooter } from "@/app/shared/components/layouts/Footer";
 
 export const metadata = {
   title: "Verifikasi Publik Sertifikat | IMPACT.ID",
-  description: "Halaman verifikasi publik keaslian sertifikat dan kredensial digital berbasis blockchain IMPACT.ID."
+  description: "Halaman verifikasi publik keaslian sertifikat dan kredensial digital berbasis blockchain IMPACT.ID.",
 };
 
 interface VerifyPageProps {
@@ -29,70 +31,110 @@ interface VerifyPageProps {
 export default async function PublicVerifyPage({ params }: VerifyPageProps) {
   const { id } = await params;
 
-  let certData = {
-    id: id,
-    credentialId: id.length > 12 ? `${id.substring(0, 8).toUpperCase()}-${id.substring(9, 13).toUpperCase()}` : id.toUpperCase(),
-    holderName: "Budi Pratama",
-    institution: "SMA Negeri 1 Jakarta",
-    challengeTitle: "Pengembangan Aplikasi Edukasi Sampah Digital",
-    challengeDescription: "Berhasil merancang dan menerapkan solusi teknologi pemilahan sampah berbasis masyarakat dengan dampak nyata.",
-    issuedDate: "15 Juli 2026",
-    validatedBy: "Budi Santoso, M.Pd (Guru Pendamping)",
-    location: "DKI Jakarta",
-    impactScore: 150,
-    blockchainNetwork: "Polygon PoS Mainnet",
-    blockNumber: "58,412,987",
-    transactionHash: `0x${id.replace(/-/g, "").padEnd(40, "8f9a2b4c").substring(0, 40)}`,
-    confirmations: 128,
-    isRealDbData: false
-  };
+  // ── Query database ────────────────────────────────────────────────────────
+  let certData: {
+    id: string;
+    credentialId: string;
+    holderName: string;
+    institution: string;
+    challengeTitle: string;
+    challengeDescription: string;
+    issuedDate: string;
+    validatedBy: string;
+    location: string;
+    impactScore: number;
+    blockchainNetwork: string;
+    blockNumber: string;
+    transactionHash: string;
+    confirmations: number;
+  } | null = null;
 
   try {
-    const sub = await prisma.submission.findFirst({
-      where: {
-        OR: [
-          { id: id },
-          { id: { startsWith: id } }
-        ]
-      },
+    const sub = await prisma.submission.findUnique({
+      where: { id },
       include: {
         challenge: true,
-        user: {
-          include: { profile: true }
-        },
-        verification: {
-          include: { teacher: true }
-        }
-      }
+        user: { include: { profile: true } },
+        verification: { include: { teacher: true } },
+      },
     });
 
     if (sub) {
       certData = {
         id: sub.id,
-        credentialId: sub.id.length > 12 ? sub.id.substring(0, 8).toUpperCase() : sub.id.toUpperCase(),
+        credentialId: sub.id.substring(0, 8).toUpperCase(),
         holderName: sub.user.name || "Siswa IMPACT.ID",
-        institution: sub.user.profile?.schoolName || sub.user.profile?.city || "Sekolah Mitra IMPACT.ID",
+        institution:
+          sub.user.profile?.schoolName ||
+          sub.user.profile?.city ||
+          "Sekolah Mitra IMPACT.ID",
         challengeTitle: sub.challenge.title,
         challengeDescription: sub.challenge.description,
         issuedDate: new Date(sub.updatedAt).toLocaleDateString("id-ID", {
           day: "numeric",
           month: "long",
-          year: "numeric"
+          year: "numeric",
         }),
-        validatedBy: sub.verification?.teacher?.name ? `${sub.verification.teacher.name} (Guru Pengampu)` : "Tim Verifikator IMPACT.ID",
+        validatedBy: sub.verification?.teacher?.name
+          ? `${sub.verification.teacher.name} (Guru Pengampu)`
+          : "Tim Verifikator IMPACT.ID",
         location: sub.challenge.location || "Indonesia",
         impactScore: sub.challenge.points,
         blockchainNetwork: "Polygon PoS Mainnet",
         blockNumber: "58,412,987",
         transactionHash: `0x${sub.id.replace(/-/g, "").padEnd(40, "a1b2c3d4e5").substring(0, 40)}`,
         confirmations: 256,
-        isRealDbData: true
       };
     }
   } catch (err) {
     console.error("[PUBLIC VERIFY QUERY ERROR]", err);
   }
 
+  // ── NOT FOUND state ──────────────────────────────────────────────────────
+  if (!certData) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex flex-col items-center justify-center py-16 px-4 text-center space-y-6">
+          <div className="w-24 h-24 rounded-full bg-red-50 border-4 border-red-100 flex items-center justify-center">
+            <ShieldX className="w-12 h-12 text-red-500" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h1 className="text-2xl font-black text-slate-900">Sertifikat Tidak Ditemukan</h1>
+            <p className="text-sm text-slate-500 font-medium leading-relaxed">
+              ID <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{id}</span> tidak
+              ditemukan dalam database IMPACT.ID. Pastikan QR Code dipindai dengan benar atau gunakan ID yang valid.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/verify"
+              className="px-5 py-2.5 bg-[#00473e] hover:bg-[#003830] text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              Cari ID Sertifikat
+            </Link>
+            <Link
+              href="/"
+              className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Kembali ke Beranda
+            </Link>
+          </div>
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 max-w-md flex items-start gap-3 text-left">
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 font-medium leading-relaxed">
+              Jika Anda yakin sertifikat ini valid, kemungkinan data belum tersinkronisasi. Hubungi admin sekolah atau tim IMPACT.ID untuk bantuan verifikasi manual.
+            </p>
+          </div>
+        </main>
+        <GlobalFooter />
+      </div>
+    );
+  }
+
+  // ── FOUND state ─────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
       <Navbar />
@@ -123,7 +165,7 @@ export default async function PublicVerifyPage({ params }: VerifyPageProps) {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 bg-emerald-100/80 text-emerald-800 text-xs font-extrabold px-3.5 py-1 rounded-full uppercase tracking-wider">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              Sertifikat Keahlian Sah & Terverifikasi
+              Sertifikat Keahlian Sah &amp; Terverifikasi
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Kredensial Digital Resmi IMPACT.ID
@@ -162,10 +204,8 @@ export default async function PublicVerifyPage({ params }: VerifyPageProps) {
 
             {/* Achievement details */}
             <div className="space-y-3">
-              <p className="text-xs uppercase font-extrabold text-slate-400 tracking-[0.2em]">Pencapaian & Program</p>
-              <h3 className="text-xl font-bold text-slate-800 leading-snug">
-                {certData.challengeTitle}
-              </h3>
+              <p className="text-xs uppercase font-extrabold text-slate-400 tracking-[0.2em]">Pencapaian &amp; Program</p>
+              <h3 className="text-xl font-bold text-slate-800 leading-snug">{certData.challengeTitle}</h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 {certData.challengeDescription}
               </p>
